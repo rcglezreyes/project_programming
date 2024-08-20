@@ -1,0 +1,227 @@
+<div class="bg-light dark:bg-transparent min-vh-100 d-flex flex-row align-items-center">
+  <c-container class="wider-container">
+    <c-row class="justify-content-center">
+      <c-col lg="8" xl="8">
+        <c-card class="mx-4" [ngClass]="{'expanded': hasErrors}">
+          <c-card-body class="p-4">
+            <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+              <h1>Register</h1>
+              <p class="text-body-secondary">Create your account</p>
+
+              <!-- First Name and Last Name -->
+              <c-row>
+                <c-col>
+                  <c-input-group class="mb-3">
+                    <span cInputGroupText
+                      [ngClass]="{'is-invalid': registerForm.get('first_name')?.invalid && registerForm.get('first_name')?.touched}">
+                      <svg cIcon name="cilUser"></svg>
+                    </span>
+                    <input formControlName="first_name" autoComplete="given-name" cFormControl placeholder="First Name"
+                      [ngClass]="{'is-invalid': registerForm.get('first_name')?.invalid && registerForm.get('first_name')?.touched}" />
+                  </c-input-group>
+                  <div *ngIf="registerForm.get('first_name')?.invalid && registerForm.get('first_name')?.touched"
+                    class="c-form-feedback">
+                    First Name is required
+                  </div>
+                </c-col>
+                <c-col>
+                  <c-input-group class="mb-3">
+                    <span cInputGroupText
+                      [ngClass]="{'is-invalid': registerForm.get('last_name')?.invalid && registerForm.get('last_name')?.touched}">
+                      <svg cIcon name="cilUser"></svg>
+                    </span>
+                    <input formControlName="last_name" autoComplete="family-name" cFormControl placeholder="Last Name"
+                      [ngClass]="{'is-invalid': registerForm.get('last_name')?.invalid && registerForm.get('last_name')?.touched}" />
+                  </c-input-group>
+                  <div *ngIf="registerForm.get('last_name')?.invalid && registerForm.get('last_name')?.touched"
+                    class="c-form-feedback">
+                    Last Name is required
+                  </div>
+                </c-col>
+              </c-row>
+
+              <!-- Username and Email -->
+              <c-row>
+                <c-col>
+                  <c-input-group class="mb-3">
+                    <span cInputGroupText
+                      [ngClass]="{'is-invalid': registerForm.get('username')?.invalid && registerForm.get('username')?.touched}">
+                      <svg cIcon name="cilUser"></svg>
+                    </span>
+                    <input formControlName="username" autoComplete="username" cFormControl placeholder="Username"
+                      [ngClass]="{'is-invalid': registerForm.get('username')?.invalid && registerForm.get('username')?.touched}" />
+                  </c-input-group>
+                  <div *ngIf="registerForm.get('username')?.errors?.['required'] && 
+                  registerForm.get('username')?.touched" class="c-form-feedback">
+                    Username is required
+                  </div>
+                  <div *ngIf="registerForm.get('username')?.errors?.['existingUsername'] && 
+                  !registerForm.get('username')?.errors?.['required'] && 
+                  registerForm.get('username')?.touched" class="c-form-feedback">
+                    Username already exists
+                  </div>
+                </c-col>
+                <c-col>
+                  <c-input-group class="mb-3">
+                    <span cInputGroupText
+                      [ngClass]="{'is-invalid': registerForm.get('email')?.invalid && registerForm.get('email')?.touched}">&#64;</span>
+                    <input formControlName="email" autoComplete="email" cFormControl placeholder="Email"
+                      [ngClass]="{'is-invalid': registerForm.get('email')?.invalid && registerForm.get('email')?.touched}" />
+                  </c-input-group>
+                  <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+                    class="c-form-feedback">
+                    <div *ngIf="registerForm.get('email')?.errors?.['required']">Email is required</div>
+                    <div *ngIf="registerForm.get('email')?.errors?.['email']">Invalid email format</div>
+                    <div *ngIf="registerForm.get('email')?.errors?.['existingEmailInUsers']">
+                      Email already exists in Users
+                    </div>
+                    <div *ngIf="registerForm.get('email')?.errors?.['existingEmailInCustomers']">
+                      Email already exists in Customers
+                    </div>
+                  </div>
+                </c-col>
+              </c-row>
+
+              <!-- Password and Confirm Password -->
+              <c-row>
+                <c-col>
+                  <c-input-group class="mb-3">
+                    <span cInputGroupText
+                      [ngClass]="{'is-invalid': registerForm.get('password')?.invalid && registerForm.get('password')?.touched}">
+                      <svg cIcon name="cilLockLocked"></svg>
+                    </span>
+                    <input formControlName="password" autoComplete="new-password" cFormControl placeholder="Password"
+                      type="password"
+                      [ngClass]="{'is-invalid': registerForm.get('password')?.invalid && registerForm.get('password')?.touched}" />
+                  </c-input-group>
+                  <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+                    class="c-form-feedback">
+                    <div *ngIf="registerForm.get('password')?.errors?.['required']">Password is required</div>
+                    <div *ngIf="registerForm.get('password')?.errors?.['minlength']">Password must be at least 6
+                      characters</div>
+                  </div>
+                </c-col>
+                <c-col>
+                  <c-input-group class="mb-3">
+                    <span cInputGroupText
+                      [ngClass]="{'is-invalid': registerForm.get('confirm_password')?.invalid && registerForm.get('confirm_password')?.touched}">
+                      <svg cIcon name="cilLockLocked"></svg>
+                    </span>
+                    <input formControlName="confirm_password" autoComplete="new-password" cFormControl
+                      placeholder="Repeat password" type="password"
+                      [ngClass]="{'is-invalid': registerForm.get('confirm_password')?.invalid && registerForm.get('confirm_password')?.touched}" />
+                  </c-input-group>
+                  <div
+                    *ngIf="registerForm.get('confirm_password')?.invalid && registerForm.get('confirm_password')?.touched"
+                    class="c-form-feedback">
+                    <div *ngIf="registerForm.get('confirm_password')?.errors?.['required']">Confirm password is required
+                    </div>
+                    <div *ngIf="registerForm.get('confirm_password')?.errors?.['mismatch']">Passwords do not match</div>
+                  </div>
+                </c-col>
+              </c-row>
+
+              <!-- Address -->
+              <c-row>
+                <c-col>
+                  <c-input-group class="mb-3">
+                    <span cInputGroupText
+                      [ngClass]="{'is-invalid': registerForm.get('address')?.invalid && registerForm.get('address')?.touched}">
+                      <svg cIcon name="cilHome"></svg>
+                    </span>
+                    <input formControlName="address" autoComplete="address-line1" cFormControl placeholder="Address"
+                      [ngClass]="{'is-invalid': registerForm.get('address')?.invalid && registerForm.get('address')?.touched}" />
+                  </c-input-group>
+                  <div *ngIf="registerForm.get('address')?.invalid && registerForm.get('address')?.touched"
+                    class="c-form-feedback">
+                    Address is required
+                  </div>
+                </c-col>
+              </c-row>
+
+              <!-- Phone and City -->
+              <c-row>
+                <c-col>
+                  <c-input-group class="mb-3">
+                    <span cInputGroupText
+                      [ngClass]="{'is-invalid': registerForm.get('phone')?.invalid && registerForm.get('phone')?.touched}">
+                      <svg cIcon name="cil-phone"></svg>
+                    </span>
+                    <input formControlName="phone" autoComplete="tel" cFormControl placeholder="Phone"
+                      [ngClass]="{'is-invalid': registerForm.get('phone')?.invalid && registerForm.get('phone')?.touched}" />
+                  </c-input-group>
+                  <div *ngIf="registerForm.get('phone')?.invalid && registerForm.get('phone')?.touched"
+                    class="c-form-feedback">
+                    Phone is required
+                  </div>
+                </c-col>
+                <c-col>
+                  <c-input-group class="mb-3">
+                    <span cInputGroupText
+                      [ngClass]="{'is-invalid': registerForm.get('city')?.invalid && registerForm.get('city')?.touched}">
+                      <svg cIcon name="cilLocationPin"></svg>
+                    </span>
+                    <input formControlName="city" autoComplete="address-level2" cFormControl placeholder="City"
+                      [ngClass]="{'is-invalid': registerForm.get('city')?.invalid && registerForm.get('city')?.touched}" />
+                  </c-input-group>
+                  <div *ngIf="registerForm.get('city')?.invalid && registerForm.get('city')?.touched"
+                    class="c-form-feedback">
+                    City is required
+                  </div>
+                </c-col>
+              </c-row>
+
+              <!-- Zip Code and Country -->
+              <c-row>
+                <c-col>
+                  <c-input-group class="mb-3">
+                    <span cInputGroupText
+                      [ngClass]="{'is-invalid': registerForm.get('postal_code')?.invalid && registerForm.get('postal_code')?.touched}">
+                      <svg cIcon name="cilLocationPin"></svg>
+                    </span>
+                    <input formControlName="postal_code" autoComplete="postal-code" cFormControl placeholder="Zip Code"
+                      type="text"
+                      [ngClass]="{'is-invalid': registerForm.get('postal_code')?.invalid && registerForm.get('postal_code')?.touched}" />
+                  </c-input-group>
+                  <div *ngIf="registerForm.get('postal_code')?.invalid && registerForm.get('postal_code')?.touched"
+                    class="c-form-feedback">
+                    <div *ngIf="registerForm.get('postal_code')?.errors?.['required']">Zip Code is required</div>
+                    <div *ngIf="registerForm.get('postal_code')?.errors?.['pattern']">Zip Code must be a positive integer
+                    </div>
+                  </div>
+                </c-col>
+                <c-col>
+                  <c-input-group class="mb-3">
+                    <span cInputGroupText
+                      [ngClass]="{'is-invalid': registerForm.get('country')?.invalid && registerForm.get('country')?.touched}">
+                      <svg cIcon name="cil-globe-alt"></svg>
+                    </span>
+                    <ng-select formControlName="country" [items]="listCountries" bindLabel="fields.name" bindValue="pk"
+                      placeholder="Select country"
+                      style="border-radius: 0.25rem; width:88.5%; padding: 0.375rem 0.75rem; border: 1px solid #ddd"
+                      [ngClass]="{'is-invalid': registerForm.get('country')?.invalid && registerForm.get('country')?.touched}">
+                      <ng-template ng-option-tmp let-country="item">
+                        <img [src]="country.fields.flag" width="20" height="15" style="margin-right: 8px;">
+                        {{ country.fields.name }}
+                      </ng-template>
+                    </ng-select>
+                  </c-input-group>
+                  <div *ngIf="registerForm.get('country')?.invalid && registerForm.get('country')?.touched"
+                    class="c-form-feedback">
+                    Country is required
+                  </div>
+                </c-col>
+              </c-row>
+
+              <!-- Buttons -->
+              <div class="d-flex" style="margin-top: 20px">
+                <button cButton type="submit" color="dark" class="flex-fill me-2">Create Account</button>
+                <button cButton type="button" color="secondary" class="flex-fill" routerLink="/login">Cancel</button>
+              </div>
+            </form>
+          </c-card-body>
+        </c-card>
+      </c-col>
+    </c-row>
+  </c-container>
+</div>

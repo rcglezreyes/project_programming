@@ -1,0 +1,74 @@
+services:
+  ecommerce_backend_app:
+    build:
+      context: ./ecommerce_backend
+    container_name: ecommerce_backend_app
+    volumes:
+      - ./ecommerce_backend:/app
+      - ./ecommerce_backend/nginx/gunicorn.conf.py:/etc/nginx/gunicorn.conf.py
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=ecommerce_backend.settings
+      - DJANGO_SUPERUSER_USERNAME=admin
+      - DJANGO_SUPERUSER_EMAIL=admin@example.com
+      - DJANGO_SUPERUSER_PASSWORD=admin
+      - LOGINUSER_USERNAME=test
+      - LOGINUSER_EMAIL=test@example.com
+      - LOGINUSER_PASSWORD=test
+    env_file:
+      - ./ecommerce_backend/ecommerce_backend/.env
+    networks:
+      - programming_the_internet_module
+
+  ecommerce_frontend_app:
+    build:
+      context: ./ecommerce_frontend
+    container_name: ecommerce_frontend_app
+    volumes:
+      - ./ecommerce_frontend/build:/app/build 
+    env_file:
+      - ./ecommerce_frontend/.env
+    networks:
+      - programming_the_internet_module
+
+  postgres_database:
+    image: postgres:16.0
+    container_name: postgres_database
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/scripts_db:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_DB=ecommerce_dev_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5434:5432"
+    networks:
+      - programming_the_internet_module
+
+  nginx_server_app:
+    build:
+      context: ./nginx
+    container_name: nginx_server_app
+    ports:
+      - "80:80"
+      - "443:443"
+    extra_hosts:
+      - "database.system.com:10.0.0.95"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certificates:/etc/nginx/certificates:ro
+      - ./ecommerce_frontend/dist/ecommerce_frontend/browser:/usr/share/nginx/html 
+    depends_on:
+      - ecommerce_backend_app
+      - ecommerce_frontend_app
+    networks:
+      - programming_the_internet_module
+
+volumes:
+  postgres_data:
+
+networks:
+  programming_the_internet_module:
+    driver: bridge

@@ -1,0 +1,93 @@
+<c-row>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header ngPreserveWhitespaces>
+        <strong>{{ title }}</strong>
+      </c-card-header>
+      <c-card-body>
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" cForm class="row g-3 needs-validation">
+          <c-col md="4">
+            <label cLabel for="name">Name</label>
+            <c-input-group class="mb-3">
+              <input formControlName="name" autoComplete="given-name" cFormControl
+                [ngClass]="{'is-invalid': registerForm.get('name')?.invalid && registerForm.get('name')?.touched}" />
+            </c-input-group>
+            <div *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched" class="c-form-feedback">
+              Name is required
+            </div>
+          </c-col>
+          <c-col md="4">
+            <label cLabel for="last_name">Price</label>
+            <c-input-group class="mb-3">
+              <input formControlName="price" autoComplete="price" cFormControl type="number"
+                [ngClass]="{'is-invalid': registerForm.get('price')?.invalid && registerForm.get('price')?.touched}" />
+            </c-input-group>
+            <div *ngIf="registerForm.get('price')?.invalid && registerForm.get('price')?.touched"
+              class="c-form-feedback">
+              Price is required
+            </div>
+          </c-col>
+          <c-col md="4">
+            <label cLabel for="stock">Stock</label>
+            <c-input-group class="mb-3">
+              <input formControlName="stock" autoComplete="stock" cFormControl type="number"
+                [ngClass]="{'is-invalid': registerForm.get('stock')?.invalid && registerForm.get('stock')?.touched}" />
+            </c-input-group>
+            <div *ngIf="registerForm.get('stock')?.invalid && registerForm.get('stock')?.touched"
+              class="c-form-feedback">
+              Stock is required
+            </div>
+          </c-col>
+
+          <c-col md="8">
+            <label cLabel for="category">Category</label>
+            <c-input-group class="mb-3">
+              <ng-select formControlName="category" [items]="listCategories" bindLabel="fields.name" bindValue="pk"
+                placeholder="Select category"
+                style="border-radius: 0.25rem; width:100%; padding: 0.375rem 0.75rem; border: 1px solid #ddd"
+                [ngClass]="{'is-invalid': registerForm.get('category')?.invalid && registerForm.get('category')?.touched}">
+                <ng-template ng-option-tmp let-category="item">
+                  {{ category.fields.name }}
+                </ng-template>
+              </ng-select>
+            </c-input-group>
+            <div *ngIf="registerForm.get('category')?.invalid && registerForm.get('category')?.touched"
+              class="c-form-feedback">
+              Category is required
+            </div>
+          </c-col>
+
+          <c-col md="12">
+            <label cLabel for="description">Description</label>
+            <c-input-group class="mb-3">
+              <textarea formControlName="description" autoComplete="description" cFormControl></textarea>
+            </c-input-group>
+          </c-col>
+          
+          <c-col md="10">
+            <label cLabel for="image">Image</label>
+            <c-input-group class="mb-3">
+              <input formControlName="image" autoComplete="image" 
+              cFormControl type="file" (change)="onFileSelected($event)"/>
+            </c-input-group>
+          </c-col>
+          <c-col md="2">
+            <div *ngIf="previewUrl" 
+            style="border: 1px solid rgba(229, 221, 221, 0.654); margin-left: 20px;">
+              <h6>Image Preview:</h6>
+              <img [src]="previewUrl" alt="Preview" width="150" />
+            </div>
+          </c-col>
+          <c-col xs="12">
+            <button cButton class="me-1" color="dark" type="submit">
+              {{ buttonText }}
+            </button>
+            <button (click)="navigateToProducts()" cButton color="secondary" type="reset">
+              Cancel
+            </button>
+          </c-col>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

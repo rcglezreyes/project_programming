@@ -1,0 +1,64 @@
+<c-row ngPreserveWhitespaces>
+    <c-col xs="12">
+      <c-card class="mb-4">
+        <c-card-header class="d-flex justify-content-between align-items-center">
+          <strong>Customers List</strong>
+          <div class="ms-auto">
+            <button
+              [active]="'active'"
+              [color]="'dark'"
+              [size]="'sm'"
+              (click)="navigateToManageCustomer()"
+              cButton
+            >
+              <svg cIcon class="me-2" name="cil-user" size="sm"></svg>
+              New Customer
+            </button>
+          </div>
+        </c-card-header>
+        <c-card-body>
+            <table cTable>
+              <thead cTableColor="dark">
+              <tr>
+                <th scope="col" *ngFor="let column of tableHeaders">{{ column }}</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr *ngFor="let item of listCustomers; let i = index">
+                <th scope="row">{{ i + 1}}</th>
+                <td>{{ item.fields.first_name}}</td>
+                <td>{{ item.fields.last_name}}</td>
+                <td>{{ item.fields.email }}</td>
+                <td>{{ item.fields.phone }}</td>
+                <td>
+                  <button
+                    [active]="'active'"
+                    [color]="'secondary'"
+                    [size]="'sm'"
+                    ngbTooltip="Edit"
+                    (click)="navigateToEditCustomer(item)"
+                    tooltipClass="custom-tooltip"
+                    cButton
+                  >
+                    <svg cIcon class="me-2" name="cil-pencil" size="sm" style="margin-left: 10px"></svg>
+                  </button>
+                  <button
+                    [active]="'active'"
+                    [color]="'danger'"
+                    [size]="'sm'"
+                    ngbTooltip="Delete"
+                    (click)="onDelete(item.pk)"
+                    tooltipClass="custom-tooltip"
+                    cButton
+                  >
+                    <svg cIcon class="me-2" name="cil-trash" size="sm" style="margin-left: 10px"></svg>
+                  </button>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+        </c-card-body>
+      </c-card>
+    </c-col>
+  </c-row>
+  

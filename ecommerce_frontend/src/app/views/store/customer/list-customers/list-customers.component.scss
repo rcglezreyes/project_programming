@@ -1,0 +1,14 @@
+.custom-tooltip .tooltip-inner {
+    background-color: #33069c; /* Cambia esto al color de fondo que desees */
+    color: #ffffff; /* Cambia esto al color del texto que desees */
+    border-radius: 4px; /* Ajusta el radio del borde si es necesario */
+    padding: 8px 10px; /* Ajusta el padding si es necesario */
+  }
+  
+  .custom-tooltip .arrow::before {
+    border-top-color: #333333; /* Cambia esto al color de la flecha si el tooltip aparece arriba */
+    /* Si el tooltip aparece en otras direcciones, ajusta los siguientes estilos */
+    border-right-color: #333333;
+    border-bottom-color: #333333;
+    border-left-color: #333333;
+  }

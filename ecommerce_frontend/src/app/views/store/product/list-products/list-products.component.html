@@ -1,0 +1,82 @@
+<c-row ngPreserveWhitespaces>
+    <c-col xs="12">
+      <c-card class="mb-4">
+        <c-card-header class="d-flex justify-content-between align-items-center">
+          <strong>Products List</strong>
+          <div class="ms-auto">
+            <button
+              [active]="'active'"
+              [color]="'dark'"
+              [size]="'sm'"
+              (click)="navigateToManageProduct()"
+              cButton
+            >
+              <svg cIcon class="me-2" name="cil-user" size="sm"></svg>
+              New Product
+            </button>
+          </div>
+        </c-card-header>
+        <c-card-body>
+            <table cTable>
+              <thead cTableColor="dark">
+              <tr>
+                <th scope="col" *ngFor="let column of tableHeaders">{{ column }}</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr *ngFor="let item of listProducts; let i = index">
+                <th scope="row">{{ i + 1}}</th>
+                <td>
+                    <img
+                        [src]="item.fields.image"
+                        alt="product"
+                        style="width: 50px; height: 50px; border-radius: 50%"
+                    />
+                </td>
+                <td>
+                    {{ item.fields.name }}
+                </td>
+                <td>
+                    {{ item.fields.price }}
+                </td>
+                <td>
+                    {{ item.fields.stock }}
+                </td>
+                <td>
+                    {{ item.fields.available }}   
+                </td>
+                <td>
+                    {{ item.fields.category.fields.name }}
+                </td>
+                <td>
+                  <button
+                    [active]="'active'"
+                    [color]="'secondary'"
+                    [size]="'sm'"
+                    ngbTooltip="Edit"
+                    (click)="navigateToEditProduct(item)"
+                    tooltipClass="custom-tooltip"
+                    cButton
+                  >
+                    <svg cIcon class="me-2" name="cil-pencil" size="sm" style="margin-left: 10px"></svg>
+                  </button>
+                  <button
+                    [active]="'active'"
+                    [color]="'danger'"
+                    [size]="'sm'"
+                    ngbTooltip="Delete"
+                    (click)="onDelete(item.pk)"
+                    tooltipClass="custom-tooltip"
+                    cButton
+                  >
+                    <svg cIcon class="me-2" name="cil-trash" size="sm" style="margin-left: 10px"></svg>
+                  </button>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+        </c-card-body>
+      </c-card>
+    </c-col>
+  </c-row>
+  

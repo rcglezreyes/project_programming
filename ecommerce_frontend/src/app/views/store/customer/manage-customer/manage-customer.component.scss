@@ -1,0 +1,64 @@
+.expanded {
+    transition: height 0.3s ease-in-out;
+    height: auto;
+  }
+
+.is-invalid {
+    border-color: red;
+    background-color: #ffe6e6; /* O cualquier color de fondo suave */
+    border: 1px solid red !important;
+  }
+
+  .svg-is-invalid {
+    fill: red;
+  }
+
+.c-form-feedback {
+    margin-top: -20px; /* Espacio muy pequeño entre el input y el mensaje de error */
+    margin-bottom: 0.5rem; /* Espacio más grande debajo del mensaje de error */
+    font-size: 0.80rem; /* Tamaño de letra ligeramente reducido */
+    color: red; /* Color rojo para el texto */
+  }
+  
+  .c-input-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .c-input-group .input-group-prepend,
+  .c-input-group .input-group-append {
+    align-self: stretch;
+  }
+  
+  .c-input-group .form-control {
+    flex: 1 1 auto;
+  }
+  
+  svg[cIcon] {
+    width: 1rem;
+    height: 1rem;
+  }
+  
+  .ng-dropdown-panel {
+    background-color: white !important; 
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1) !important;
+    margin-left: -10px !important;
+    margin-top: 10px !important;
+    min-width: 100% !important;
+    max-height: 100px !important;
+    overflow-y: auto !important;
+  }
+  
+  .ng-dropdown-panel .ng-option {
+    padding: 5px 15px !important;
+    margin: 5px 0px !important;
+  }
+  
+  .ng-dropdown-panel .ng-option .ng-option-label {
+    display: flex !important;
+    align-items: center !important;
+  }
+  
+  .ng-option img {
+    margin-right: 10px !important;
+  }
