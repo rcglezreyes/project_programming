@@ -13,7 +13,10 @@ import {
   BorderDirective,
   AlignDirective,
   ButtonDirective,
+  FormModule
 } from '@coreui/angular';
+import { ReactiveFormsModule, FormGroup, FormBuilder } from '@angular/forms';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { IconDirective } from '@coreui/icons-angular';
@@ -21,6 +24,7 @@ import { Router, RouterModule } from '@angular/router';
 import Swal from 'sweetalert2';
 import { ProductService } from 'src/app/services/product.service';
 import { IProduct } from 'src/app/interfaces/iproduct.interface';
+import { environment } from 'src/environments/environment.development';
 
 @Component({
   selector: 'app-tables',
@@ -44,12 +48,18 @@ import { IProduct } from 'src/app/interfaces/iproduct.interface';
     ButtonDirective,
     CommonModule,
     NgbModule,
-    RouterModule
+    RouterModule,
+    ReactiveFormsModule,
+    FormModule
   ]
 })
 export class ListProductsComponent implements OnInit {
 
+  module: string = 'products';
+
   listProducts: IProduct[] = [];
+  filteredProducts: IProduct[] = [];
+  searchForm: FormGroup;
 
   tableHeaders = [
     '#',
@@ -64,7 +74,15 @@ export class ListProductsComponent implements OnInit {
 
   @Input() iProduct!: IProduct;
 
-  constructor(private router: Router, private productService: ProductService) { }
+  constructor(
+    private router: Router, 
+    private productService: ProductService, 
+    private fb: FormBuilder
+  ) {
+    this.searchForm = this.fb.group({
+      search_term: ['']
+    });
+  }
 
   ngOnInit(): void {
     const isStaff = localStorage.getItem('isStaff');
@@ -73,7 +91,33 @@ export class ListProductsComponent implements OnInit {
     } else {
       this.productService.loadListProducts();
       this.subscribeToProductList();
+      this.setupSearch();
     }
+  }
+
+  setupSearch(): void {
+    this.searchForm.get('search_term')?.valueChanges.pipe(
+      debounceTime(100),
+      distinctUntilChanged()
+    ).subscribe(term => {
+      console.log('Search term:', term);
+      this.filteredProducts = this.filterProducts(term);
+    });
+  }
+
+  filterProducts(term: string): IProduct[] {
+    if (!term) {
+      return this.listProducts;
+    }
+
+    const lowerTerm = term.toLowerCase();
+    return this.listProducts.filter(product =>
+      product.fields.name.toLowerCase().includes(lowerTerm) ||
+      product.fields.price === parseFloat(lowerTerm) ||
+      product.fields.stock === parseInt(lowerTerm) ||
+      product.fields.description.toLowerCase().includes(lowerTerm) ||
+      product.fields.category.fields.name.toLowerCase().includes(lowerTerm)
+    );
   }
 
   subscribeToProductList(): void {
@@ -121,5 +165,15 @@ export class ListProductsComponent implements OnInit {
         });
       }
     });
+  }
+
+  selectAllText(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    inputElement.select(); 
+  }
+
+  getImageUrl(imagePath: string): string {
+    const ROOT_URL = environment.serviceHost;
+    return `${environment.serviceHost}${imagePath}`;
   }
 }

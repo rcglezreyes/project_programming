@@ -13,11 +13,14 @@ import {
   BorderDirective,
   AlignDirective,
   ButtonDirective,
+  FormModule
 } from '@coreui/angular';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { IconDirective } from '@coreui/icons-angular';
 import { Router } from '@angular/router';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { CustomerService } from 'src/app/services/customer.service';
 import { ICustomer } from 'src/app/interfaces/icustomer.interface';
@@ -43,12 +46,18 @@ import { ICustomer } from 'src/app/interfaces/icustomer.interface';
     AlignDirective,
     ButtonDirective,
     CommonModule,
-    NgbModule
+    NgbModule,
+    FormModule,
+    ReactiveFormsModule
   ]
 })
 export class ListCustomersComponent implements OnInit {
 
+  module: string = 'customers';
+
   listCustomers: ICustomer[] = [];
+  filteredCustomers: ICustomer[] = [];
+  searchForm: FormGroup;
 
   tableHeaders = [
     '#',
@@ -61,7 +70,15 @@ export class ListCustomersComponent implements OnInit {
 
   @Input() iCustomer!: ICustomer;
 
-  constructor(private router: Router, private customerService: CustomerService) { }
+  constructor(
+    private router: Router,
+    private customerService: CustomerService,
+    private fb: FormBuilder
+  ) {
+    this.searchForm = this.fb.group({
+      search_term: ['']
+    });
+  }
 
   ngOnInit(): void {
     const isStaff = localStorage.getItem('isStaff');
@@ -70,13 +87,39 @@ export class ListCustomersComponent implements OnInit {
     } else {
       this.customerService.loadListCustomers();
       this.subscribeToCustomerList();
+      this.setupSearch();
     }
+  }
+
+  setupSearch(): void {
+    this.searchForm.get('search_term')?.valueChanges.pipe(
+      debounceTime(100),
+      distinctUntilChanged()
+    ).subscribe(term => {
+      console.log('Search term:', term);
+      this.filteredCustomers = this.filterCustomers(term);
+    });
+  }
+
+  filterCustomers(term: string): ICustomer[] {
+    if (!term) {
+      return this.listCustomers;
+    }
+
+    const lowerTerm = term.toLowerCase();
+    return this.listCustomers.filter(customer =>
+      customer.fields.first_name.toLowerCase().includes(lowerTerm) ||
+      customer.fields.last_name.toLowerCase().includes(lowerTerm) ||
+      customer.fields.email.toLowerCase().includes(lowerTerm) ||
+      customer.fields.phone.toLowerCase().includes(lowerTerm)
+    );
   }
 
   subscribeToCustomerList(): void {
     this.customerService.getListCustomers().subscribe({
       next: (customers) => {
         this.listCustomers = customers;
+        this.filteredCustomers = customers;
       },
       error: (error) => {
         console.error('Request failed:', error);
@@ -118,5 +161,10 @@ export class ListCustomersComponent implements OnInit {
         });
       }
     });
+  }
+
+  selectAllText(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    inputElement.select(); 
   }
 }

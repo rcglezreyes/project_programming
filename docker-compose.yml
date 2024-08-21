@@ -6,6 +6,7 @@ services:
     volumes:
       - ./ecommerce_backend:/app
       - ./ecommerce_backend/nginx/gunicorn.conf.py:/etc/nginx/gunicorn.conf.py
+      - ./ecommerce_backend/media:/app/media
     ports:
       - "8000:8000"
     environment:

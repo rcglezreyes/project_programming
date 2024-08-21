@@ -16,8 +16,11 @@ urlpatterns = [
     path("list_products/", views.list_products, name="list_products"),
     # manage views
     path("manage_customer/", views.manage_customer, name="manage_customer"),
+    path("manage_product/", views.manage_product, name="manage_product"),
     # delete views
     path("delete_customer/", views.delete_customer, name="delete_customer"),
+    # upload views
+    path('upload_image/', views.upload_image, name='upload_image'),
     # JWT token views
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

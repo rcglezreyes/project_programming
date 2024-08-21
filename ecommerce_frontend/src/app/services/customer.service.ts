@@ -17,7 +17,7 @@ export class CustomerService {
 
   loadListCustomers(): void {
     this.webService.fetchWithToken<IApiResponse<any[]>>('list_customers').subscribe({
-      next: (response: IApiResponse<any[]>) => {  
+      next: (response: any) => {  
         const customers = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
         this.customersSubject.next(customers);
       },

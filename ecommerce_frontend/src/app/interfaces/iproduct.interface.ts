@@ -2,6 +2,7 @@ import { ICategory } from './icategory.interface';
 export interface IProduct {
     pk: number;
     fields: {
+        id: number;
         name: string;
         description: string;
         price: number;

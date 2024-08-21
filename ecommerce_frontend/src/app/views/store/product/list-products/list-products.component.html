@@ -3,6 +3,18 @@
       <c-card class="mb-4">
         <c-card-header class="d-flex justify-content-between align-items-center">
           <strong>Products List</strong>
+          <div style="min-width: 40%; margin-left: 10px; margin-top: 15px">
+            <form [formGroup]="searchForm">
+              <c-input-group class="mb-3">
+                <span cInputGroupText>
+                  <svg cIcon name="cil-magnifying-glass"></svg>
+                </span>
+                <input formControlName="search_term" autoComplete="search_term" cFormControl
+                  placeholder="Search in {{module}}..."
+                  type="text" class="form-control" (focus)="selectAllText($event)" />
+              </c-input-group>
+            </form>
+          </div>
           <div class="ms-auto">
             <button
               [active]="'active'"
@@ -28,7 +40,7 @@
                 <th scope="row">{{ i + 1}}</th>
                 <td>
                     <img
-                        [src]="item.fields.image"
+                        [src]="getImageUrl(item.fields.image)"
                         alt="product"
                         style="width: 50px; height: 50px; border-radius: 50%"
                     />

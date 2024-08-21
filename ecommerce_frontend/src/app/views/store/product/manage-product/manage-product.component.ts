@@ -118,67 +118,86 @@ export class ManageProductComponent implements OnInit {
     }
   }
 
-  onSubmit() {
+  async onSubmit() {
     this.markFormGroupTouched(this.registerForm);
     const text = this.isEditMode ? 'updated' : 'saved';
+
     if (this.registerForm.valid) {
-      const formData = new FormData();
-      formData.append('file', this.selectedFile as Blob);
+      try {
+        const formData = new FormData();
+        formData.append('file', this.selectedFile as Blob);
 
-      this.http.post<{ imageUrl: string }>('/api/upload', formData).subscribe({
-        next: (response) => {
-          // Guardar la URL de la imagen en el formulario
-          this.form.get('imageUrl')?.setValue(response.imageUrl);
-          
-          // Aquí puedes enviar el formulario completo con la URL guardada
-          console.log('Form data:', this.form.value);
-        },
-        error: (error) => {
-          console.error('Error uploading file:', error);
-        }
-      });
+        const response = await lastValueFrom(this.productService.uploadImage(formData));
+        this.registerForm.get('image')?.setValue(response);
 
+        console.log('Image uploaded successfully:', response);
 
-      const payload = this.isEditMode ?
-                      { ...this.registerForm.value, id: this.product.pk } :
-                      this.registerForm.value;
-      this.productService.manageProduct(payload).subscribe({
-        next: (response: IApiResponse<any[]>) => {
-          console.log('Response:', response);
-          Swal.fire({
-            title: 'Success!',
-            text: `Product has been ${text} successfully!`,
-            icon: 'success',
-            confirmButtonText: 'OK',
-            willClose: () => {
-              this.router.navigate(['/store/products']);
-            }
-          });
-        },
-        error: (error) => {
-          console.error('Request failed:', error);
-        },
-        complete: () => {
-          console.log('Request completed.');
-        }
-      });
+        const payload = this.isEditMode ?
+          { ...this.registerForm.value, id: this.product.pk } :
+          this.registerForm.value;
+
+        delete payload.file;
+
+        console.log('Payload:', payload);
+
+        this.productService.manageProduct(payload).subscribe({
+          next: (manageResponse: any) => {
+            console.log('Response:', manageResponse);
+            Swal.fire({
+              title: 'Success!',
+              text: `Product has been ${text} successfully!`,
+              icon: 'success',
+              confirmButtonText: 'OK',
+              willClose: () => {
+                this.router.navigate(['/store/products']);
+              }
+            });
+          },
+          error: (error) => {
+            console.error('Request failed:', error);
+            Swal.fire({
+              title: 'Error!',
+              text: `Something went wrong while processing the request.`,
+              icon: 'error',
+              confirmButtonText: 'OK',
+            });
+          },
+          complete: () => {
+            console.log('Request completed.');
+          }
+        });
+      } catch (error) {
+        console.error('Request failed:', error);
+        Swal.fire({
+          title: 'Error!',
+          text: `Something went wrong while processing the request.`,
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
+      }
     } else {
       this.hasErrors = true;
       console.log('Form is invalid:', this.registerForm.errors);
     }
   }
 
+
   initializeForm(product: IProduct): void {
     this.registerForm = this.fb.group({
       name: [product ? product.fields.name : '', Validators.required],
-      price: [product ? product.fields.price : '', Validators.required],
+      price: [
+        product ? product.fields.price : '',
+        [Validators.required, Validators.pattern(/^[1-9]\d*(\.\d+)?$/)]
+      ],
       stock: [
         product ? product.fields.stock : '',
         [Validators.required, Validators.pattern(/^[0-9]+$/)]
       ],
       category: [product ? product.fields.category : null, Validators.required],
       description: [product ? product.fields.description : ''],
-      image: [product ? product.fields.image : '']
+      image: [product ? product.fields.image : ''],
+      file: [null],
+      available: [product ? product.fields.available : false]
     });
   }
 
@@ -186,10 +205,10 @@ export class ManageProductComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       this.selectedFile = input.files[0];
-      
+
       const reader = new FileReader();
       reader.onload = (e) => {
-        this.previewUrl = e.target?.result ?? null; 
+        this.previewUrl = e.target?.result ?? null;
       };
       reader.readAsDataURL(this.selectedFile);
     }
@@ -211,6 +230,11 @@ export class ManageProductComponent implements OnInit {
 
   navigateToProducts() {
     this.router.navigate(['/store/products']);
+  }
+
+  clearPreview() {
+    this.previewUrl = null;
+    this.registerForm.get('image')?.reset();
   }
 
   private markFormGroupTouched(formGroup: FormGroup) {
