@@ -10,7 +10,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from app_ecommerce.models import LoginUser, Country, Customer, Category, Product
+from app_ecommerce.models import LoginUser, Country, Customer, Category, Product, Cart
 import json
 import logging
 import traceback
@@ -44,12 +44,14 @@ def login_view(request):
                 if not user.is_active:
                     return JsonResponse({'error': 'Invalid credentials', 'description' : 'Username does not exist'}, status=400)
                 logger.info(f'User {username} logged in')
+                customer = Customer.objects.filter(user=user).first() if not user.is_staff else None
                 return JsonResponse({
                     'status': 'success', 
                     'is_staff': 'admin' if user.is_staff else 'user', 
                     'username': user.username,
                     'first_name': user.first_name,
-                    'last_name': user.last_name
+                    'last_name': user.last_name,
+                    'customer': model_to_dict(customer) if customer else None
                 }, status=200)
             login_user = LoginUser.objects.filter(username=username).first()
             if login_user:
@@ -164,7 +166,7 @@ def list_categories(request):
     return JsonResponse({'error': 'Invalid token'}, status=401)
 
 #############################################
-# 4. List Categories
+# 5. List Products
 #############################################
 
 @api_view(['GET'])
@@ -201,6 +203,92 @@ def list_products(request):
                     }
                 }
                 lists.append(product_data)
+
+        return JsonResponse({'data': lists}, safe=False)
+    
+    return JsonResponse({'error': 'Invalid token'}, status=401)
+
+
+#############################################
+# 6. List Carts
+#############################################
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_carts(request):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        if 'customer_id' in request.GET:
+            customer_id = request.GET.get('customer_id')
+            list_query = Cart.objects.filter(
+                is_active=True, customer__is_active=True, product__is_active=True, customer__id=customer_id
+            ).select_related(
+                'product__category', 'customer__country'
+            ).order_by('-created_at')
+        else:
+            list_query = Cart.objects.filter(
+                is_active=True, customer__is_active=True, product__is_active=True
+            ).select_related(
+                'product__category', 'customer__country'
+            ).order_by('-created_at')
+
+        batch_size = 100 
+        lists = []
+        for i in range(0, list_query.count(), batch_size):
+            batch = list_query[i:i + batch_size]
+            for cart in batch:
+                cart_data = {
+                    'pk': cart.pk,
+                    'fields': {
+                        'id': cart.id,
+                        'quantity': cart.quantity,
+                        'created_at': cart.created_at,
+                        'updated_at': cart.updated_at,
+                        'is_active': cart.is_active,
+                        'product': {
+                            'pk': cart.product.pk,
+                            'fields': {
+                                'id': cart.product.id,
+                                'product': cart.product.name,
+                                'description': cart.product.description,
+                                'price': cart.product.price,
+                                'stock': cart.product.stock,
+                                'available': cart.product.available,
+                                'image': cart.product.image,
+                                'category': {
+                                    'pk': cart.product.category.pk,
+                                    'fields': {
+                                        'id': cart.product.category.id,
+                                        'name': cart.product.category.name,
+                                        'sizes': cart.product.category.sizes,
+                                        'types': cart.product.category.types
+                                    }
+                                }
+                            }
+                        },
+                        'customer': {
+                            'pk': cart.customer.pk,
+                            'fields': {
+                                'id': cart.customer.id,
+                                'first_name': cart.customer.first_name,
+                                'last_name': cart.customer.last_name,
+                                'email': cart.customer.email,
+                                'country': {
+                                    'pk': cart.customer.country.pk,
+                                    'fields': {
+                                        'id': cart.customer.country.id,
+                                        'name': cart.customer.country.name
+                                    }
+                                },
+                                'city': cart.customer.city,
+                                'address': cart.customer.address,
+                                'postal_code': cart.customer.postal_code,
+                                'phone': cart.customer.phone
+                            }
+                        },
+                    }
+                }
+                lists.append(cart_data)
 
         return JsonResponse({'data': lists}, safe=False)
     
@@ -291,7 +379,15 @@ def manage_product(request):
             data = json.loads(request.body)
             logger.info(f'Data: {data}')
             
-            category = Category.objects.filter(pk=data.get('category')).first()
+            if 'category' not in data:
+                return JsonResponse({'error': 'Category not provided'}, status=400)
+            
+            req_category = data.get('category') 
+            
+            req_category = Category.objects.filter(pk=req_category.get('pk')).first().pk \
+                           if isinstance(req_category, dict) else req_category
+            
+            category = Category.objects.filter(pk=req_category).first()
             if not category:
                 return JsonResponse({'error': 'Invalid category'}, status=400)
             
@@ -321,6 +417,36 @@ def manage_product(request):
             logger.error(traceback.format_exc())
             return JsonResponse({'error': f'Invalid data for product: {str(e)}'}, status=400)
 
+    return JsonResponse({'error': 'Invalid token or invalid registration'}, status=401)
+
+
+#############################################
+# 3. Manage Cart
+#############################################
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def manage_cart(request):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        data = json.loads(request.body)
+        if 'customer' not in data:
+            return JsonResponse({'error': 'Customer not provided'}, status=400)
+        customer = Customer.objects.filter(pk=data['customer']).first()
+        if not customer:
+            return JsonResponse({'error': 'Invalid customer'}, status=400)
+        if 'product' not in data:
+            return JsonResponse({'error': 'Product not provided'}, status=400)
+        product = Product.objects.filter(pk=data['product']).first()
+        if not product:
+            return JsonResponse({'error': 'Invalid product'}, status=400)
+        if 'quantity' not in data:
+            return JsonResponse({'error': 'Quantity not provided'}, status=400)
+        quantity = data['quantity']
+        if quantity < 1:
+            return JsonResponse({'error': 'Invalid quantity'}, status=400)
+        cart = Cart.objects.create(customer=customer, product=product, quantity=quantity)
+        return JsonResponse({'data': model_to_dict(cart)}, safe=False, status=200)
     return JsonResponse({'error': 'Invalid token or invalid registration'}, status=401)
 
 # ***************************************** #
@@ -360,6 +486,36 @@ def delete_customer(request):
     except Exception as e:
         logger.error(f"Error deactivating customer: {str(e)}")
         return JsonResponse({'error': 'An error occurred while deactivating the customer'}, status=500)
+    
+    
+#############################################
+# 2. Delete product
+#############################################
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])  # Ajusta los permisos según tu lógica
+@transaction.atomic
+def delete_product(request):
+    try:
+        data = json.loads(request.body)
+        product_id = data.get('id')
+        
+        if not product_id:
+            return JsonResponse({'error': 'Product ID not provided'}, status=400)
+        
+        product = Product.objects.filter(id=product_id, is_active=True).first()
+        
+        if not product:
+            return JsonResponse({'error': 'Product not found or already inactive'}, status=404)
+        
+        product.is_active = False
+        product.save()
+        
+        return JsonResponse({'message': 'Product deactivated successfully'}, status=200)
+    
+    except Exception as e:
+        logger.error(f"Error deactivating product: {str(e)}")
+        return JsonResponse({'error': 'An error occurred while deactivating the product'}, status=500)
 
 # ***************************************** #
 

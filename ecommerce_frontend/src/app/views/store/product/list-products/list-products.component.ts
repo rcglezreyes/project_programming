@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { DocsExampleComponent } from '@docs-components/public-api';
 import {
   RowComponent,
@@ -13,9 +13,10 @@ import {
   BorderDirective,
   AlignDirective,
   ButtonDirective,
-  FormModule
+  FormModule,
 } from '@coreui/angular';
-import { ReactiveFormsModule, FormGroup, FormBuilder } from '@angular/forms';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { ReactiveFormsModule, FormGroup, FormBuilder, FormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
@@ -25,12 +26,15 @@ import Swal from 'sweetalert2';
 import { ProductService } from 'src/app/services/product.service';
 import { IProduct } from 'src/app/interfaces/iproduct.interface';
 import { environment } from 'src/environments/environment.development';
+import { CartService } from 'src/app/services/cart.service';
+import { ICart } from 'src/app/interfaces/icart.interface';
 
 @Component({
   selector: 'app-tables',
   templateUrl: './list-products.component.html',
   styleUrls: ['./list-products.component.scss'],
   standalone: true,
+  encapsulation: ViewEncapsulation.None,
   imports: [
     IconDirective,
     RowComponent,
@@ -50,12 +54,16 @@ import { environment } from 'src/environments/environment.development';
     NgbModule,
     RouterModule,
     ReactiveFormsModule,
-    FormModule
+    FormModule,
+    NgSelectModule,
+    FormsModule
   ]
 })
 export class ListProductsComponent implements OnInit {
 
   module: string = 'products';
+
+  isStaff: boolean = localStorage.getItem('isStaff') === 'admin';
 
   listProducts: IProduct[] = [];
   filteredProducts: IProduct[] = [];
@@ -75,8 +83,9 @@ export class ListProductsComponent implements OnInit {
   @Input() iProduct!: IProduct;
 
   constructor(
-    private router: Router, 
-    private productService: ProductService, 
+    private router: Router,
+    private productService: ProductService,
+    private cartService: CartService,
     private fb: FormBuilder
   ) {
     this.searchForm = this.fb.group({
@@ -86,13 +95,9 @@ export class ListProductsComponent implements OnInit {
 
   ngOnInit(): void {
     const isStaff = localStorage.getItem('isStaff');
-    if (isStaff !== 'admin') {
-      this.router.navigate(['/404']);
-    } else {
-      this.productService.loadListProducts();
-      this.subscribeToProductList();
-      this.setupSearch();
-    }
+    this.productService.loadListProducts();
+    this.subscribeToProductList();
+    this.setupSearch();
   }
 
   setupSearch(): void {
@@ -102,9 +107,9 @@ export class ListProductsComponent implements OnInit {
     ).subscribe(term => {
       console.log('Search term:', term);
       this.filteredProducts = this.filterProducts(term);
+
     });
   }
-
   filterProducts(term: string): IProduct[] {
     if (!term) {
       return this.listProducts;
@@ -124,6 +129,10 @@ export class ListProductsComponent implements OnInit {
     this.productService.getListProducts().subscribe({
       next: (products) => {
         this.listProducts = products;
+        this.listProducts.forEach(product => {
+          product.quantity = 1;
+        });
+        this.filteredProducts = products;
       },
       error: (error) => {
         console.error('Request failed:', error);
@@ -169,11 +178,50 @@ export class ListProductsComponent implements OnInit {
 
   selectAllText(event: Event): void {
     const inputElement = event.target as HTMLInputElement;
-    inputElement.select(); 
+    inputElement.select();
   }
 
   getImageUrl(imagePath: string): string {
     const ROOT_URL = environment.serviceHost;
     return `${environment.serviceHost}${imagePath}`;
   }
+
+  increaseQuantity(product: IProduct): void {
+    product.quantity += 1;
+  }
+
+  decreaseQuantity(product: IProduct): void {
+    if (product.quantity > 1) {
+      product.quantity -= 1;
+    }
+  }
+
+  addToCart(product: IProduct): void {
+    const payload = {
+      product: product.pk,
+      customer: localStorage.getItem('customerId'),
+      quantity: product.quantity,
+      size: product.size ?
+        product.size : (product.fields.category.fields.sizes[0] ?
+          product.fields.category.fields.sizes[0] : '')
+    };
+
+    this.cartService.manageCart(payload).subscribe({
+      next: (response) => {
+        Swal.fire({
+          title: 'Success!',
+          text: 'Product has been added to cart successfully!',
+          icon: 'success',
+          confirmButtonText: 'OK',
+          // willClose: () => {
+          //   window.location.reload();
+          // }
+        });
+      },
+      error: (error) => {
+        console.error('Request failed:', error);
+      }
+    });
+  }
+
 }

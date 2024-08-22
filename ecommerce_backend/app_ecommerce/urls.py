@@ -1,6 +1,7 @@
-from django.urls import path  # Importa include
+from django.urls import path, re_path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf.urls.static import static
+from django.views.static import serve
 from django.conf import settings
 from . import views
 
@@ -14,14 +15,20 @@ urlpatterns = [
     path("list_customers/", views.list_customers, name="list_customers"),
     path("list_categories/", views.list_categories, name="list_categories"),
     path("list_products/", views.list_products, name="list_products"),
+    path("list_carts/", views.list_carts, name="list_carts"),
     # manage views
     path("manage_customer/", views.manage_customer, name="manage_customer"),
     path("manage_product/", views.manage_product, name="manage_product"),
+    path("manage_cart/", views.manage_cart, name="manage_cart"),
     # delete views
     path("delete_customer/", views.delete_customer, name="delete_customer"),
+    path("delete_product/", views.delete_product, name="delete_product"),
     # upload views
     path('upload_image/', views.upload_image, name='upload_image'),
     # JWT token views
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    re_path(r'^media/(?P<path>.*\.(jpg|jpeg|png|gif|webp))$', serve, {
+        'document_root': settings.MEDIA_ROOT,
+    }),
 ]

@@ -37,7 +37,7 @@ import Swal from 'sweetalert2';
 import { ProductService } from 'src/app/services/product.service';
 import { ICategory } from 'src/app/interfaces/icategory.interface';
 import { IProduct } from 'src/app/interfaces/iproduct.interface';
-import { IApiResponse } from 'src/app/interfaces/iapiResponse.interface';
+import { environment } from 'src/environments/environment.development';
 
 @Component({
   selector: 'app-validation',
@@ -94,6 +94,7 @@ export class ManageProductComponent implements OnInit {
 
   previewUrl: string | ArrayBuffer | null = null;
   selectedFile: File | null = null;
+  
 
   constructor(
     private fb: FormBuilder,
@@ -113,6 +114,7 @@ export class ManageProductComponent implements OnInit {
       this.isEditMode = this.product ? true : false;
       this.title = this.isEditMode ? 'Edit Product' : 'Add Product';
       this.buttonText = this.isEditMode ? 'Update' : 'Save';
+      this.previewUrl = this.product ? `${environment.serviceHost}${this.product.fields.image}` : null;
       this.loadListCategories();
       this.initializeForm(this.product);
     }
@@ -125,17 +127,18 @@ export class ManageProductComponent implements OnInit {
     if (this.registerForm.valid) {
       try {
         const formData = new FormData();
-        formData.append('file', this.selectedFile as Blob);
 
-        const response = await lastValueFrom(this.productService.uploadImage(formData));
-        this.registerForm.get('image')?.setValue(response);
-
-        console.log('Image uploaded successfully:', response);
+        if (this.selectedFile) { 
+          formData.append('file', this.selectedFile as Blob);
+          const response = await lastValueFrom(this.productService.uploadImage(formData));
+          this.registerForm.get('image')?.setValue(response);
+          console.log('Image uploaded successfully:', response);
+        }
 
         const payload = this.isEditMode ?
           { ...this.registerForm.value, id: this.product.pk } :
           this.registerForm.value;
-
+        
         delete payload.file;
 
         console.log('Payload:', payload);
@@ -197,7 +200,7 @@ export class ManageProductComponent implements OnInit {
       description: [product ? product.fields.description : ''],
       image: [product ? product.fields.image : ''],
       file: [null],
-      available: [product ? product.fields.available : false]
+      available: [product ? product.fields.available : true]
     });
   }
 
@@ -245,13 +248,6 @@ export class ManageProductComponent implements OnInit {
         this.markFormGroupTouched(control);
       }
     });
-  }
-
-  private passwordMatchValidator(control: AbstractControl): { [key: string]: boolean } | null {
-    if (!this.registerForm) return null;
-    const password = this.registerForm.get('password')?.value;
-    const confirmPassword = control.value;
-    return password !== confirmPassword ? { mismatch: true } : null;
   }
 
 }

@@ -12,3 +12,44 @@
     border-bottom-color: #333333;
     border-left-color: #333333;
   }
+
+  .sticky-header thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: #343a40; 
+    color: white; 
+  }
+  
+  .sticky-header thead th {
+    // padding: 16px; 
+    text-align: left;
+    border-bottom: 2px solid #dee2e6; 
+  }
+
+  c-card-body {
+    padding: 0; 
+    max-height: 400px; 
+    overflow-y: auto; 
+  }
+
+  .ng-dropdown-panel {
+    background-color: white !important; 
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1) !important;
+    margin-left: -10px !important;
+    margin-top: 10px !important;
+    min-width: 100% !important;
+    max-height: 200px !important;
+    overflow-y: auto !important;
+  }
+  
+  .ng-dropdown-panel .ng-option {
+    padding: 5px 15px !important;
+    margin: 5px 0px !important;
+  }
+  
+  .ng-dropdown-panel .ng-option .ng-option-label {
+    display: flex !important;
+    align-items: center !important;
+  }
+  

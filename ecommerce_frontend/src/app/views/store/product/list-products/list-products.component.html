@@ -1,7 +1,9 @@
 <c-row ngPreserveWhitespaces>
-    <c-col xs="12">
+  <c-col xs="12">
+    <div *ngIf="isStaff" style="padding-top: 0; padding-bottom: 0">
       <c-card class="mb-4">
-        <c-card-header class="d-flex justify-content-between align-items-center">
+        <c-card-header class="d-flex justify-content-between align-items-center"
+          style="padding-top: 0; padding-bottom: 0">
           <strong>Products List</strong>
           <div style="min-width: 40%; margin-left: 10px; margin-top: 15px">
             <form [formGroup]="searchForm">
@@ -10,85 +12,130 @@
                   <svg cIcon name="cil-magnifying-glass"></svg>
                 </span>
                 <input formControlName="search_term" autoComplete="search_term" cFormControl
-                  placeholder="Search in {{module}}..."
-                  type="text" class="form-control" (focus)="selectAllText($event)" />
+                  placeholder="Search in {{module}}..." type="text" class="form-control"
+                  (focus)="selectAllText($event)" />
               </c-input-group>
             </form>
           </div>
           <div class="ms-auto">
-            <button
-              [active]="'active'"
-              [color]="'dark'"
-              [size]="'sm'"
-              (click)="navigateToManageProduct()"
-              cButton
-            >
+            <button [active]="'active'" [color]="'dark'" [size]="'sm'" (click)="navigateToManageProduct()" cButton>
               <svg cIcon class="me-2" name="cil-user" size="sm"></svg>
               New Product
             </button>
           </div>
         </c-card-header>
-        <c-card-body>
-            <table cTable>
-              <thead cTableColor="dark">
+        <c-card-body style="padding: 0">
+          <table cTable class="sticky-header">
+            <thead cTableColor="dark">
               <tr>
                 <th scope="col" *ngFor="let column of tableHeaders">{{ column }}</th>
               </tr>
-              </thead>
-              <tbody>
-              <tr *ngFor="let item of listProducts; let i = index">
-                <th scope="row">{{ i + 1}}</th>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of filteredProducts; let i = index">
+                <th scope="row" style="padding-top: 35px">{{ i + 1}}</th>
                 <td>
-                    <img
-                        [src]="getImageUrl(item.fields.image)"
-                        alt="product"
-                        style="width: 50px; height: 50px; border-radius: 50%"
-                    />
+                  <img [src]="getImageUrl(item.fields.image)" alt="product"
+                    style="width: 80px; height: 80px; border-radius: 50%" />
                 </td>
-                <td>
-                    {{ item.fields.name }}
+                <td style="padding-top: 35px">
+                  {{ item.fields.name }}
                 </td>
-                <td>
-                    {{ item.fields.price }}
+                <td style="padding-top: 35px">
+                  $ {{ item.fields.price }}
                 </td>
-                <td>
-                    {{ item.fields.stock }}
+                <td style="padding-top: 35px">
+                  {{ item.fields.stock }}
                 </td>
-                <td>
-                    {{ item.fields.available }}   
+                <td style="padding-top: 35px">
+                  <b style="color: green" *ngIf="item.fields.available">YES</b>
+                  <b style="color: red" *ngIf="!item.fields.available">NO</b>
                 </td>
-                <td>
-                    {{ item.fields.category.fields.name }}
+                <td style="padding-top: 35px">
+                  {{ item.fields.category.fields.name }}
                 </td>
-                <td>
-                  <button
-                    [active]="'active'"
-                    [color]="'secondary'"
-                    [size]="'sm'"
-                    ngbTooltip="Edit"
-                    (click)="navigateToEditProduct(item)"
-                    tooltipClass="custom-tooltip"
-                    cButton
-                  >
+                <td style="padding-top: 35px">
+                  <button [active]="'active'" [color]="'secondary'" [size]="'sm'" ngbTooltip="Edit"
+                    (click)="navigateToEditProduct(item)" tooltipClass="custom-tooltip" cButton>
                     <svg cIcon class="me-2" name="cil-pencil" size="sm" style="margin-left: 10px"></svg>
                   </button>
-                  <button
-                    [active]="'active'"
-                    [color]="'danger'"
-                    [size]="'sm'"
-                    ngbTooltip="Delete"
-                    (click)="onDelete(item.pk)"
-                    tooltipClass="custom-tooltip"
-                    cButton
-                  >
+                  <button [active]="'active'" [color]="'danger'" [size]="'sm'" ngbTooltip="Delete"
+                    (click)="onDelete(item.pk)" tooltipClass="custom-tooltip" cButton>
                     <svg cIcon class="me-2" name="cil-trash" size="sm" style="margin-left: 10px"></svg>
                   </button>
                 </td>
               </tr>
-              </tbody>
-            </table>
+            </tbody>
+          </table>
         </c-card-body>
       </c-card>
-    </c-col>
-  </c-row>
-  
+    </div>
+
+    <div *ngIf="!isStaff">
+      <c-row>
+        <ng-container *ngFor="let item of filteredProducts; let i = index">
+          <ng-container *ngIf="item.fields.available">
+            <c-col md="6">
+              <c-card class="mb-3">
+                <c-card-header class="d-flex justify-content-between">
+                  <strong>{{ item.fields.name }}</strong>
+                  <small style="font-size: 11px;">({{item.fields.description}})</small>
+                </c-card-header>
+                <c-card-body>
+                  <c-row>
+                    <c-col md="6">
+                      <img [src]="getImageUrl(item.fields.image)" alt="product" style="width: 100%" />
+                    </c-col>
+                    <c-col md="6">
+                      <p style="margin-bottom: 0; padding-bottom: 0">Price: <b>$ {{ item.fields.price }}</b></p>
+                      <p style="margin-bottom: 0; padding-bottom: 0">Stock: <b>{{ item.fields.stock }}</b></p>
+                      <p style="margin-bottom: 0; padding-bottom: 0">Category: <b>{{ item.fields.category.fields.name
+                          }}</b>
+                      </p>
+                      <div class="d-flex align-items-center" style="margin-bottom: 5px; padding-bottom: 0">
+                        <button cButton color="dark" (click)="decreaseQuantity(item)" style="margin-right: 0px;">
+                          -
+                        </button>
+
+                        <input type="text" class="form-control text-center" [value]="item.quantity" style="width: 60px;"
+                          readonly>
+
+                        <button cButton color="dark" (click)="increaseQuantity(item)" style="margin-left: 0px;">
+                          +
+                        </button>
+                      </div>
+
+                      <div *ngIf="item.fields.category.fields.sizes.length > 0">
+                        <c-input-group class="mb-3">
+                          <ng-select placeholder="Select Size" [items]="item.fields.category.fields.sizes" bindLabel="size" bindValue="size"
+                            [(ngModel)]="item.size"
+                            style="border-radius: 0.25rem; width:100%; padding: 0.375rem 0.375rem; border: 1px solid #ddd; margin-bottom: 0px;">
+                            <ng-option *ngFor="let type of item.fields.category.fields.sizes" [value]="type">
+                              Size: <b>{{ type }}</b>
+                            </ng-option>
+                          </ng-select>
+                        </c-input-group>
+                      </div>
+
+                      <div *ngIf="item.fields.stock < 10" class="alert alert-danger" role="alert"
+                        style="font-size: 12px; padding: 0">
+                        Warning: <b>Only {{ item.fields.stock }} items left in stock!</b>
+                      </div>
+
+                      <button [active]="'active'" [color]="'dark'" [size]="'sm'" (click)="addToCart(item)" cButton>
+                        <svg cIcon class="me-2" name="cil-basket" size="sm"></svg>
+                        Add to cart
+                      </button>
+                    </c-col>
+                  </c-row>
+                </c-card-body>
+              </c-card>
+            </c-col>
+            <ng-container *ngIf="(i + 1) % 2 === 0"></ng-container>
+          </ng-container>
+        </ng-container>
+      </c-row>
+    </div>
+
+  </c-col>
+</c-row>

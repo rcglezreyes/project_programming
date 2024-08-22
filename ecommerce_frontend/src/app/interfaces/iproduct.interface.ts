@@ -14,4 +14,6 @@ export interface IProduct {
         image: string;
         is_active: boolean;
     };
+    quantity: number;
+    size: string;
 }

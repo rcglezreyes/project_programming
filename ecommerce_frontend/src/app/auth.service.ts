@@ -42,6 +42,7 @@ export class AuthService {
         localStorage.removeItem('isStaff');
         localStorage.removeItem('firstName');
         localStorage.removeItem('lastName');
+        localStorage.removeItem('customerId');
         this.router.navigate(['/login']); 
       },
       error: (error) => {

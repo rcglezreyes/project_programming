@@ -96,7 +96,6 @@ export class ListCustomersComponent implements OnInit {
       debounceTime(100),
       distinctUntilChanged()
     ).subscribe(term => {
-      console.log('Search term:', term);
       this.filteredCustomers = this.filterCustomers(term);
     });
   }

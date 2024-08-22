@@ -33,6 +33,7 @@ import Swal from 'sweetalert2';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../../app/auth.service';
+import { CartService } from 'src/app/services/cart.service';
 
 @Component({
   selector: 'app-default-header',
@@ -83,12 +84,19 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit{
 
   user: any = {};
 
+  numberCartItems: number = 0;
+
   readonly icons = computed(() => {
     const currentMode = this.colorMode();
     return this.colorModes.find(mode=> mode.name === currentMode)?.icon ?? 'cilSun';
   });
 
-  constructor(private router: Router, private http: HttpClient, private authService: AuthService) {
+  constructor(
+    private router: Router, 
+    private http: HttpClient, 
+    private authService: AuthService,
+    private cartService: CartService
+  ) {
     super();
     this.#colorModeService.localStorageItemName.set('ecommerce_frontend-theme-default');
     this.#colorModeService.eventName.set('ColorSchemeChange');
@@ -116,6 +124,10 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit{
       isAdmin: localStorage.getItem('isStaff') === 'admin',
       username: localStorage.getItem('username')
     };
+    this.cartService.loadListCarts();
+    this.cartService.getListCarts().subscribe((carts) => {
+      this.numberCartItems = carts.length;
+    });
   }
 
   handleLogout() {

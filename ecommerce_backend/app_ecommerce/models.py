@@ -144,6 +144,7 @@ class Cart(models.Model):
     customer = models.ForeignKey(Customer, related_name='cart', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, related_name='cart', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
+    size = models.CharField(max_length=50, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)

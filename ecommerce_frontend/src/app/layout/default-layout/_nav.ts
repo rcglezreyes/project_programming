@@ -39,28 +39,16 @@ const options = [
     isVisible: () => localStorage.getItem('isStaff') === 'user'
   },
   {
-    name: 'Products',
-    url: '/store/my_products',
-    iconComponent: { name: 'cil-layers' },
-    isVisible: () => localStorage.getItem('isStaff') === 'user'
-  },
-  {
-    name: 'Manage Products',
+    name: `${localStorage.getItem('isStaff') === 'admin' ? 'Manage' : ''} Products`,
     url: '/store/products',
     iconComponent: { name: 'cil-layers' },
-    isVisible: () => localStorage.getItem('isStaff') === 'admin' 
+    isVisible: true
   },
   {
-    name: 'Orders',
+    name: `${localStorage.getItem('isStaff') === 'admin' ? 'Manage' : ''} Orders`,
     url: '/store/orders',
     iconComponent: { name: 'cil-notes' },
     isVisible: () => localStorage.getItem('isStaff') === 'user'
-  },
-  {
-    name: 'Manage Orders',
-    url: '/store/manage_orders',
-    iconComponent: { name: 'cil-notes' },
-    isVisible: () => localStorage.getItem('isStaff') === 'admin' 
   },
   {
     name: 'Administration',

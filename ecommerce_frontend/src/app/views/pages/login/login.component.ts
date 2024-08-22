@@ -99,11 +99,13 @@ export class LoginComponent {
         console.log(loginResponse);
   
         if (loginResponse) {
+          console.log(loginResponse);
           this.success = 'Login successful';
           localStorage.setItem('isStaff', loginResponse.is_staff);
           localStorage.setItem('username', loginResponse.username);
           localStorage.setItem('firstName', loginResponse.first_name);
           localStorage.setItem('lastName', loginResponse.last_name);
+          localStorage.setItem('customerId', loginResponse.customer?.id);
           await this.router.navigate(['/dashboard']);
           location.reload();
         } else {
