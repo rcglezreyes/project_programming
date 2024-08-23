@@ -249,7 +249,7 @@ def list_carts(request):
                             'pk': cart.product.pk,
                             'fields': {
                                 'id': cart.product.id,
-                                'product': cart.product.name,
+                                'name': cart.product.name,
                                 'description': cart.product.description,
                                 'price': cart.product.price,
                                 'stock': cart.product.stock,

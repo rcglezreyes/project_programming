@@ -52,4 +52,16 @@
     display: flex !important;
     align-items: center !important;
   }
+
+.image-container {
+  width: 250px; /* Ancho deseado */
+  height: 250px; /* Altura fija */
+  overflow: hidden; /* Esconde las partes de la imagen que se salen del contenedor */
+}
+
+.responsive-image {
+  width: 100%; /* Ajusta la imagen al ancho del contenedor */
+  height: 100%; /* Hace que la altura llene el contenedor */
+  object-fit: cover; /* Recorta la imagen para que llene el contenedor sin distorsionarse */
+}
   

@@ -28,7 +28,7 @@ urlpatterns = [
     # JWT token views
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    re_path(r'^media/(?P<path>.*\.(jpg|jpeg|png|gif|webp))$', serve, {
+    re_path(r'^media/(?P<path>.*\.(jpg|jpeg|png|gif|webp|avif))$', serve, {
         'document_root': settings.MEDIA_ROOT,
     }),
 ]

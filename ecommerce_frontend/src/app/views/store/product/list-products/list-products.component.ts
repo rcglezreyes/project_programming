@@ -207,7 +207,7 @@ export class ListProductsComponent implements OnInit {
     };
 
     this.cartService.manageCart(payload).subscribe({
-      next: (response) => {
+      next: () => {
         Swal.fire({
           title: 'Success!',
           text: 'Product has been added to cart successfully!',

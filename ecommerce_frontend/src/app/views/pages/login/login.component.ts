@@ -99,7 +99,7 @@ export class LoginComponent {
         console.log(loginResponse);
   
         if (loginResponse) {
-          console.log(loginResponse);
+          // console.log(loginResponse);
           this.success = 'Login successful';
           localStorage.setItem('isStaff', loginResponse.is_staff);
           localStorage.setItem('username', loginResponse.username);

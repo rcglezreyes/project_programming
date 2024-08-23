@@ -84,7 +84,9 @@
                 <c-card-body>
                   <c-row>
                     <c-col md="6">
-                      <img [src]="getImageUrl(item.fields.image)" alt="product" style="width: 100%" />
+                      <div class="image-container">
+                        <img [src]="getImageUrl(item.fields.image)" alt="product" class="responsive-image" />
+                      </div>
                     </c-col>
                     <c-col md="6">
                       <p style="margin-bottom: 0; padding-bottom: 0">Price: <b>$ {{ item.fields.price }}</b></p>

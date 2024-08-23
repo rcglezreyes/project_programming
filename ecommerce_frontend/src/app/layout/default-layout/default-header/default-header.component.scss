@@ -1,0 +1,120 @@
+.drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
+    z-index: 999; /* Debe estar justo debajo del drawer */
+    display: none;
+  }
+  
+  .drawer-overlay.open {
+    display: block;
+  }
+
+.drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 500px;
+    height: 100%;
+    background-color: white;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    transform: translateX(100%); 
+    transition: transform 0.3s ease-in-out; 
+    z-index: 1000; 
+    overflow-y: auto;
+  }
+  
+  .drawer.open {
+    transform: translateX(0); 
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  .cart-list {
+    list-style: none; /* Quitar viñetas por defecto */
+    padding: 0;
+    margin: 0;
+  }
+  
+  .cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f8f9fa; /* Fondo claro */
+    border: 1px solid #dee2e6; /* Borde sutil */
+    border-radius: 5px; /* Bordes redondeados */
+    padding: 10px 15px; /* Espaciado interno */
+    margin-bottom: 10px; /* Espaciado entre items */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    transition: background-color 0.3s ease; /* Transición suave en hover */
+  }
+  
+  .cart-item:hover {
+    background-color: #e9ecef; /* Cambio de fondo al pasar el ratón */
+  }
+  
+  .cart-index {
+    font-weight: bold;
+    color: #495057; /* Color de texto oscuro */
+  }
+  
+  .cart-product {
+    flex: 1; /* Ocupa el espacio disponible */
+    padding-left: 10px;
+    font-weight: 500;
+    color: #343a40; /* Color de texto más oscuro */
+  }
+  
+  .cart-quantity {
+    background-color: #6c757d; /* Fondo azul */
+    color: white; /* Texto blanco */
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: bold;
+  }
+
+  .cart-header {
+    display: flex;
+    align-items: center; /* Centra verticalmente los elementos */
+    justify-content: space-between; /* Distribuye el espacio entre los elementos */
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #dc3545; 
+    margin-left: 20px;
+  }
+  
+  h6 {
+    flex: 1; /* Permite que el título ocupe el espacio disponible */
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: left;
+  }
+  
+  .cart-checkout {
+    margin-right: 130px;
+    border-radius: 20px;
+  }
+  
+  

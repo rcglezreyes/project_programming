@@ -13,10 +13,12 @@
 
     <c-header-nav class="d-none d-md-flex ms-auto ">
       <div *ngIf="!user.isAdmin">
-        <a cNavLink style="position: relative;">
+        <a cNavLink style="position: relative;" (click)="seeDrawer()">
           <svg cIcon class="my-1" name="cil-basket" size="lg"></svg>
           <c-badge color="danger" shape="rounded-pill" style="position: absolute; top: -5px; right: -10px;">
-            {{ numberCartItems }}
+            <div *ngIf="cartService.carts$ | async as carts">
+              {{ carts.length }}
+            </div>
           </c-badge>
         </a>
       </div>
@@ -108,3 +110,29 @@
     </div>
   </c-dropdown>
 </ng-template>
+
+<!-- Overlay -->
+<div class="drawer-overlay" [ngClass]="{'open': isDrawerOpen}" (click)="closeDrawer()"></div>
+
+<!-- Drawer -->
+<div class="drawer" [ngClass]="{'open': isDrawerOpen}">
+  <div class="cart-header">
+    <h6>My Cart <span class="cart-quantity">(Total: $ {{ calculateTotalAmount() }})</span></h6>
+    <div class="cart-checkout">
+      <button class="btn btn-primary" 
+      style="border-radius: 20px; font-size: 12px;">Checkout</button>
+    </div>
+    <button class="close-btn btn-sm" (click)="closeDrawer()">X</button>
+  </div>
+  <div *ngIf="carts.length > 0"></div>
+  <ul class="cart-list">
+    <li *ngFor="let cart of carts; let i = index " class="cart-item">
+      <span class="cart-index">{{ i + 1 }}</span>
+      <span class="cart-quantity">
+        <img [src]="getImageUrl(cart)" alt="product" style="width: 50px" />
+      </span>
+      <span class="cart-product">{{ getProductName(cart) }}</span>
+      <span class="cart-quantity">Qty: {{ getQuantity(cart)  }} (Amount: $ {{ calculateTotal(cart) }})</span>
+    </li>
+  </ul>
+</div>
