@@ -22,6 +22,8 @@ export interface ICartFull {
         is_active: boolean;
         customer: ICustomerFull
         product: IProduct;
+        size: string;
         
     };
+    selected?: boolean;
 }

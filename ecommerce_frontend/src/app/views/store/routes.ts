@@ -40,6 +40,13 @@ export const routes: Routes = [
           title: 'Manage Product'
         }
       },
+      {
+        path: 'carts',
+        loadComponent: () => import('./cart/list-carts/list-carts.component').then(m => m.ListCartsComponent),
+        data: {
+          title: 'Products'
+        }
+      },
     ]
   }
 ];

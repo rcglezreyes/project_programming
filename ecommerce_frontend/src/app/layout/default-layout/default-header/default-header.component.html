@@ -119,20 +119,32 @@
   <div class="cart-header">
     <h6>My Cart <span class="cart-quantity">(Total: $ {{ calculateTotalAmount() }})</span></h6>
     <div class="cart-checkout">
-      <button class="btn btn-primary" 
-      style="border-radius: 20px; font-size: 12px;">Checkout</button>
+      <a class="btn btn-primary" (click)="navigateToCarts()" style="border-radius: 20px; font-size: 12px;">Checkout</a>
     </div>
     <button class="close-btn btn-sm" (click)="closeDrawer()">X</button>
   </div>
   <div *ngIf="carts.length > 0"></div>
   <ul class="cart-list">
-    <li *ngFor="let cart of carts; let i = index " class="cart-item">
+    <li *ngFor="let cart of carts; let i = index " class="cart-item" 
+    [ngbTooltip]="tooltip" [tooltipClass]="'custom-tooltip'"
+      style="cursor: pointer">
       <span class="cart-index">{{ i + 1 }}</span>
       <span class="cart-quantity">
         <img [src]="getImageUrl(cart)" alt="product" style="width: 50px" />
       </span>
       <span class="cart-product">{{ getProductName(cart) }}</span>
-      <span class="cart-quantity">Qty: {{ getQuantity(cart)  }} (Amount: $ {{ calculateTotal(cart) }})</span>
+      <span class="cart-quantity">Qty: {{ getQuantity(cart) }} (Amount: $ {{ calculateTotal(cart) }})</span>
+
+      <ng-template #tooltip>
+        <div text-align="left">
+          <strong>Product:</strong> {{cart.fields.product.fields.name}}<br>
+          <strong>Quantity:</strong> {{ cart.fields.quantity }}<br>
+          <strong>Price:</strong> $ {{ cart.fields.product.fields.price }}<br>
+          <strong>Total:</strong> $ {{ calculateTotal(cart) }}<br>
+          <strong>Category:</strong> {{ cart.fields.product.fields.category.fields.name }}<br>
+          <strong>Description:</strong> {{ cart.fields.product.fields.description }}
+        </div>
+      </ng-template>
     </li>
   </ul>
 </div>

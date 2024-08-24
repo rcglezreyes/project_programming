@@ -117,4 +117,17 @@
     border-radius: 20px;
   }
   
+  ::ng-deep .custom-tooltip .tooltip-inner {
+    max-width: 600px; /* Aumenta el largo del tooltip */
+    width: 100%; /* Opcional, establece el ancho completo */
+    text-align: left; /* Alinea el contenido a la izquierda */
+    background-color: #333; /* Estilo opcional */
+    color: #fff; /* Estilo opcional */
+    padding: 10px;
+    font-size: 14px;
+    white-space: pre-line; /* Asegura que los saltos de línea se respeten */
+  }
   
+  ::ng-deep .custom-tooltip .arrow::before {
+    border-top-color: #333; /* Asegura que la flecha del tooltip combine con el fondo */
+  }

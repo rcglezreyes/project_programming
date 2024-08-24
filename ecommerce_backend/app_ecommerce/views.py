@@ -10,7 +10,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from app_ecommerce.models import LoginUser, Country, Customer, Category, Product, Cart
+from app_ecommerce.models import LoginUser, Country, Customer, Category, Product, Cart, Order, OrderItem
 import json
 import logging
 import traceback
@@ -294,6 +294,95 @@ def list_carts(request):
     
     return JsonResponse({'error': 'Invalid token'}, status=401)
 
+
+#############################################
+# 7. List Orders
+#############################################
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_orders(request):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        if 'customer_id' in request.GET:
+            customer_id = request.GET.get('customer_id')
+            list_orders_query = Order.objects.filter(
+                customer__is_active=True, customer__id=customer_id, is_active=True
+            ).select_related('customer').order_by('-created_at')
+        else:
+            list_orders_query = Order.objects.filter(
+                customer__is_active=True, is_active=True
+            ).select_related('customer').order_by('-created_at')    
+        for order in list_orders_query:
+            order.listOrderItem = OrderItem.objects.filter(order=order).select_related('product')
+        batch_size = 100
+        lists = []
+        for i in range(0, list_orders_query.count(), batch_size):
+            batch = list_orders_query[i:i + batch_size]
+            for order in batch:
+                order_data = {
+                    'pk': order.pk,
+                    'fields': {
+                        'id': order.id,
+                        'total': order.total,
+                        'created_at': order.created_at,
+                        'updated_at': order.updated_at,
+                        'is_active': order.is_active,
+                        'customer': {
+                            'pk': order.customer.pk,
+                            'fields': {
+                                'id': order.customer.id,
+                                'first_name': order.customer.first_name,
+                                'last_name': order.customer.last_name,
+                                'email': order.customer.email,
+                                'country': {
+                                    'pk': order.customer.country.pk,
+                                    'fields': {
+                                        'id': order.customer.country.id,
+                                        'name': order.customer.country.name
+                                    }
+                                },
+                                'city': order.customer.city,
+                                'address': order.customer.address,
+                                'postal_code': order.customer.postal_code,
+                                'phone': order.customer.phone
+                            }
+                        },
+                        'listOrderItem': [
+                            {
+                                'id': item.id,
+                                'product': {
+                                    'pk': item.product.pk,
+                                    'fields': {
+                                        'id': item.product.id,
+                                        'name': item.product.name,
+                                        'description': item.product.description,
+                                        'price': item.product.price,
+                                        'stock': item.product.stock,
+                                        'available': item.product.available,
+                                        'image': item.product.image,
+                                        'category': {
+                                            'pk': item.product.category.pk,
+                                            'fields': {
+                                                'id': item.product.category.id,
+                                                'name': item.product.category.name,
+                                                'sizes': item.product.category.sizes,
+                                                'types': item.product.category.types
+                                            }
+                                        }
+                                    }
+                                },
+                                'quantity': item.quantity,
+                                'price': item.price,
+                                'size': item.size
+                            } for item in order.listOrderItem
+                        ]
+                    }
+                }
+                lists.append(order_data)
+        return JsonResponse({'data': lists}, safe=False)
+    return JsonResponse({'error': 'Invalid token'}, status=401)
+
 # ***************************************** #
     
 #############################################
@@ -428,6 +517,7 @@ def manage_product(request):
 @permission_classes([IsAuthenticated])
 def manage_cart(request):
     valid_token = validateJWTTokenRequest(request)
+    is_edit = False
     if valid_token:
         data = json.loads(request.body)
         if 'customer' not in data:
@@ -445,8 +535,60 @@ def manage_cart(request):
         quantity = data['quantity']
         if quantity < 1:
             return JsonResponse({'error': 'Invalid quantity'}, status=400)
-        cart = Cart.objects.create(customer=customer, product=product, quantity=quantity)
-        return JsonResponse({'data': model_to_dict(cart)}, safe=False, status=200)
+        if 'id' in data:
+            is_edit = True
+            cart = Cart.objects.filter(id=data['id']).first()
+            if not cart:
+                return JsonResponse({'error': 'Invalid cart'}, status=400)
+            cart.quantity = quantity
+            cart.size = data.get('size', '')
+            cart.save()
+            response = fullCart(cart)
+        else:
+            cart = Cart.objects.create(customer=customer, product=product, quantity=quantity, size=data.get('size', ''))
+        data = model_to_dict(cart) if not is_edit else response
+        return JsonResponse({'data': data}, safe=False, status=200)
+    return JsonResponse({'error': 'Invalid token or invalid registration'}, status=401)
+
+
+#############################################
+# 4. Manage Order
+#############################################
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def manage_order(request):
+    valid_token = validateJWTTokenRequest(request)
+    is_edit = False
+    if valid_token:
+        data = json.loads(request.body)
+        if 'customer' not in data:
+            return JsonResponse({'error': 'Customer not provided'}, status=400)
+        customer = Customer.objects.filter(pk=data['customer']).first()
+        if not customer:
+            return JsonResponse({'error': 'Invalid customer'}, status=400)
+        if 'listOrderItem' not in data:
+            return JsonResponse({'error': 'List of orders not provided'}, status=400)
+        order = Order.objects.create(
+                customer=customer, 
+                total=data.get('total', 0)
+            )
+        order.save()
+        for item in data['listOrderItem']:
+            product = Product.objects.filter(pk=item['product']).first()
+            if not product:
+                return JsonResponse({'error': 'Invalid product'}, status=400)
+            OrderItem.objects.create(
+                order=order,
+                product=product,
+                quantity=item.get('quantity', 1),
+                price=product.price,
+                size=item.get('size', '')
+            )
+            cart = Cart.objects.filter(id=item.get('idCart')).first()
+            cart.is_active = False
+            cart.save()
+        return JsonResponse({'data': data}, safe=False, status=200)
     return JsonResponse({'error': 'Invalid token or invalid registration'}, status=401)
 
 # ***************************************** #
@@ -516,6 +658,36 @@ def delete_product(request):
     except Exception as e:
         logger.error(f"Error deactivating product: {str(e)}")
         return JsonResponse({'error': 'An error occurred while deactivating the product'}, status=500)
+    
+    
+#############################################
+# 3. Delete cart
+#############################################
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])  # Ajusta los permisos según tu lógica
+@transaction.atomic
+def delete_cart(request):
+    try:
+        data = json.loads(request.body)
+        cart_id = data.get('id')
+        
+        if not cart_id:
+            return JsonResponse({'error': 'Cart ID not provided'}, status=400)
+        
+        cart = Cart.objects.filter(id=cart_id, is_active=True).first()
+        
+        if not cart:
+            return JsonResponse({'error': 'Cart not found or already inactive'}, status=404)
+        
+        cart.is_active = False
+        cart.save()
+        
+        return JsonResponse({'message': 'Cart deactivated successfully'}, status=200)
+    
+    except Exception as e:
+        logger.error(f"Error deactivating cart: {str(e)}")
+        return JsonResponse({'error': 'An error occurred while deactivating the cart'}, status=500)
 
 # ***************************************** #
 
@@ -573,4 +745,58 @@ def validateJWTTokenRequest(request):
             return False
     else:
         return False    
+    
+def fullCart(cart):
+    cart_data = {
+        'pk': cart.pk,
+        'fields': {
+            'id': cart.id,
+            'quantity': cart.quantity,
+            'created_at': cart.created_at,
+            'updated_at': cart.updated_at,
+            'is_active': cart.is_active,
+            'product': {
+                'pk': cart.product.pk,
+                'fields': {
+                    'id': cart.product.id,
+                    'name': cart.product.name,
+                    'description': cart.product.description,
+                    'price': cart.product.price,
+                    'stock': cart.product.stock,
+                    'available': cart.product.available,
+                    'image': cart.product.image,
+                    'category': {
+                        'pk': cart.product.category.pk,
+                        'fields': {
+                            'id': cart.product.category.id,
+                            'name': cart.product.category.name,
+                            'sizes': cart.product.category.sizes,
+                            'types': cart.product.category.types
+                        }
+                    }
+                }
+            },
+            'customer': {
+                'pk': cart.customer.pk,
+                'fields': {
+                    'id': cart.customer.id,
+                    'first_name': cart.customer.first_name,
+                    'last_name': cart.customer.last_name,
+                    'email': cart.customer.email,
+                    'country': {
+                        'pk': cart.customer.country.pk,
+                        'fields': {
+                            'id': cart.customer.country.id,
+                            'name': cart.customer.country.name
+                        }
+                    },
+                    'city': cart.customer.city,
+                    'address': cart.customer.address,
+                    'postal_code': cart.customer.postal_code,
+                    'phone': cart.customer.phone
+                }
+            },
+        }
+    }
+    return cart_data
 

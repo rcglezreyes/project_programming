@@ -29,23 +29,19 @@ const options = [
     isVisible: () => localStorage.getItem('isStaff') === 'admin'
   },
   {
-    name: 'My Cart',
-    url: '/store/products',
-    iconComponent: { name: 'cil-basket' },
-    badge: {
-      color: 'danger',
-      text: '3'
-    },
-    isVisible: () => localStorage.getItem('isStaff') === 'user'
-  },
-  {
     name: `${localStorage.getItem('isStaff') === 'admin' ? 'Manage' : ''} Products`,
     url: '/store/products',
     iconComponent: { name: 'cil-layers' },
     isVisible: true
   },
   {
-    name: `${localStorage.getItem('isStaff') === 'admin' ? 'Manage' : ''} Orders`,
+    name: 'My Cart',
+    url: '/store/carts',
+    iconComponent: { name: 'cil-basket' },
+    isVisible: () => localStorage.getItem('isStaff') === 'user'
+  },
+  {
+    name: `${localStorage.getItem('isStaff') === 'admin' ? 'Manage' : 'My'} Orders`,
     url: '/store/orders',
     iconComponent: { name: 'cil-notes' },
     isVisible: () => localStorage.getItem('isStaff') === 'user'

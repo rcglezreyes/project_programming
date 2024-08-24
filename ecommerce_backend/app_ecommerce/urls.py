@@ -16,13 +16,16 @@ urlpatterns = [
     path("list_categories/", views.list_categories, name="list_categories"),
     path("list_products/", views.list_products, name="list_products"),
     path("list_carts/", views.list_carts, name="list_carts"),
+    path("list_orders/", views.list_orders, name="list_orders"),
     # manage views
     path("manage_customer/", views.manage_customer, name="manage_customer"),
     path("manage_product/", views.manage_product, name="manage_product"),
     path("manage_cart/", views.manage_cart, name="manage_cart"),
+    path("manage_order/", views.manage_order, name="manage_order"),
     # delete views
     path("delete_customer/", views.delete_customer, name="delete_customer"),
     path("delete_product/", views.delete_product, name="delete_product"),
+    path("delete_cart/", views.delete_cart, name="delete_cart"),    
     # upload views
     path('upload_image/', views.upload_image, name='upload_image'),
     # JWT token views

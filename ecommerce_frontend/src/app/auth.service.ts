@@ -17,8 +17,6 @@ export class AuthService {
   readonly headers = new HttpHeaders().set('Content-Type', 'application/json');
   private readonly accessTokenKey = 'accessToken';
   private readonly refreshTokenKey = 'refreshToken';
-  // private userSubject = new BehaviorSubject<IUser | null>(null);
-  // public user$ = this.userSubject.asObservable();
 
   constructor(private http: HttpClient, private router: Router) {
     this.apiUrl = `${environment.serviceHost}`;

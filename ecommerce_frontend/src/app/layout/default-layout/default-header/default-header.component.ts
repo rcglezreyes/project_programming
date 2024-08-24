@@ -6,8 +6,7 @@ import {
   inject,
   Input,
   OnDestroy,
-  OnInit,
-  ChangeDetectionStrategy
+  OnInit
 } from '@angular/core';
 import {
   AvatarComponent,
@@ -32,6 +31,7 @@ import {
   TextColorDirective,
   ThemeDirective
 } from '@coreui/angular';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { CommonModule } from '@angular/common';
 import { AlertModule } from '@coreui/angular';
 import { NgStyle, NgTemplateOutlet } from '@angular/common';
@@ -85,7 +85,8 @@ import { ICartFull } from 'src/app/interfaces/icart.interface';
     ProgressComponent,
     NgStyle,
     AlertModule,
-    CommonModule
+    CommonModule,
+    NgbModule
   ]
 })
 export class DefaultHeaderComponent extends HeaderComponent implements OnInit, OnDestroy {
@@ -120,6 +121,7 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit, O
   constructor(
     public authService: AuthService,
     public cartService: CartService,
+    private router: Router,
     private cdr: ChangeDetectorRef
   ) {
     super();
@@ -227,4 +229,10 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit, O
       this.carts = carts;
     });
   }
+
+  navigateToCarts(): void {
+    this.isDrawerOpen = false;
+    this.router.navigate(['/store/carts']);
+  }
+  
 }

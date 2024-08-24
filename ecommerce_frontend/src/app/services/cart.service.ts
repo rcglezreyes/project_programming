@@ -13,7 +13,7 @@ export class CartService {
   carts$ = this.cartsSubject.asObservable();
 
   constructor(private webService: WebRequestService) {
-    this.loadListCarts(); 
+    this.loadListCarts();
   }
 
   loadListCarts(): void {
@@ -21,7 +21,7 @@ export class CartService {
       customer_id: localStorage.getItem('customerId')
     };
     this.webService.fetchWithToken<IApiResponse<any[]>>('list_carts', 'GET', payload).subscribe({
-      next: (response: any) => {  
+      next: (response: any) => {
         const carts = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
         this.cartsSubject.next(carts);
       },
@@ -32,19 +32,29 @@ export class CartService {
   }
 
   getListCarts(): Observable<any[]> {
-    return this.carts$; 
+    return this.carts$;
   }
 
-  manageCart(payload: Object): Observable<any> {
+  manageCart(payload: any): Observable<any> {
     return this.webService.fetchWithToken('manage_cart', 'POST', payload).pipe(
       tap(response => {
         if (response) {
           const currentCarts = this.cartsSubject.value;
-          this.cartsSubject.next([...currentCarts, payload]);
+
+          const cartIndex = currentCarts.findIndex(cart => cart.pk === payload.id);
+
+          if (cartIndex !== -1) {
+            currentCarts[cartIndex] = {
+              ...currentCarts[cartIndex],
+              ...payload
+            };
+          } else {
+            currentCarts.push(payload);
+          }
+          this.cartsSubject.next([...currentCarts]);
         }
       })
     )
-        
   }
 
   deleteCart(payload: Object): Observable<any> {

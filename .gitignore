@@ -163,3 +163,5 @@ cython_debug/
 
 ecommerce_frontend/node_modules/
 ecommerce_frontend/.angular/
+
+media/

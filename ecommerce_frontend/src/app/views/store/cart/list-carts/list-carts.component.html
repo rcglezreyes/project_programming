@@ -1,0 +1,85 @@
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4" style="min-height: 480px;">
+      <c-card-header class="d-flex justify-content-between align-items-center"
+        style="padding-top: 0; padding-bottom: 0">
+        <strong>My Carts List</strong>
+        <div style="min-width: 40%; margin-left: 10px; margin-top: 15px">
+          <form [formGroup]="searchForm">
+            <c-input-group class="mb-3">
+              <span cInputGroupText>
+                <svg cIcon name="cil-magnifying-glass"></svg>
+              </span>
+              <input formControlName="search_term" autoComplete="search_term" cFormControl
+                placeholder="Search in {{module}}..." type="text" class="form-control"
+                (focus)="selectAllText($event)" />
+            </c-input-group>
+          </form>
+        </div>
+        <div class="ms-auto">
+          <small class="text-muted me-2">Total Amount: <b>$ {{ totalSelectedAmountString }}</b></small>
+          <button [active]="'active'" [color]="'dark'" (click)="checkoutSelected()"
+          [size]="'sm'" cButton [disabled]="countSelected() === 0">
+            <svg cIcon class="me-2" name="cil-basket" size="sm"></svg>
+            Checkout
+          </button>
+        </div>
+      </c-card-header>
+      <c-card-body style="min-height: 450px;">
+        <table cTable class="sticky-header">
+          <thead cTableColor="dark">
+            <tr>
+              <ng-container *ngFor="let column of tableHeaders; let i = index">
+                <th *ngIf="i === 0" scope="col" (click)="selectAll()"
+                  [ngStyle]="{'color': 'lightgray', 'cursor': 'pointer'}">
+                  {{ column }}
+                </th>
+                <th *ngIf="i !== 0" scope="col">{{ column }}</th>
+              </ng-container>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of filteredCarts; let i = index">
+              <td style="text-align: center; vertical-align: middle;">
+                <input type="checkbox" [(ngModel)]="item.selected" (change)="updateTotal()" class="custom-checkbox"
+                  checked>
+              </td>
+              <th scope="row" style="text-align: center; vertical-align: middle;">
+                {{ i + 1}}
+              </th>
+              <td *ngIf="item && item.fields && item.fields.product"
+                style="text-align: center; vertical-align: middle;">
+                <img [src]="getImageUrl(item.fields.product.fields.image)" alt="product"
+                  style="width: 80px; height: 80px; border-radius: 50%" />
+              </td>
+              <td *ngIf="item && item.fields && item.fields.product"
+                style="text-align: center; vertical-align: middle;">
+                {{ item.fields.product.fields.name}}
+              </td>
+              <td *ngIf="item && item.fields" style="text-align: center; vertical-align: middle;">{{
+                item.fields.created_at | date: 'yyyy-MM-dd HH:mm'}}</td>
+              <td *ngIf="item && item.fields" style="text-align: center; vertical-align: middle;">
+                <input type="number" class="form-control" min="1" [(ngModel)]="item.fields.quantity"
+                  (blur)="manageCart(item)" (change)="updateTotal()"
+                  style="width: 100px; margin-left: 10px; text-align: center;" />
+              </td>
+              <td *ngIf="item && item.fields && item.fields.product"
+                style="text-align: center; vertical-align: middle;">
+                $ {{ item.fields.product.fields.price }}
+              </td>
+              <td *ngIf="item" style="text-align: center; vertical-align: middle;">
+                $ {{ calculateTotalAmount(item) }}
+              </td>
+              <td *ngIf="item" style="text-align: center; vertical-align: middle;">
+                <button [active]="'active'" [color]="'danger'" [size]="'sm'" ngbTooltip="Delete"
+                  (click)="onDelete(item.pk)" tooltipClass="custom-tooltip" cButton>
+                  <svg cIcon class="me-2" name="cil-trash" size="sm" style="margin-left: 10px"></svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

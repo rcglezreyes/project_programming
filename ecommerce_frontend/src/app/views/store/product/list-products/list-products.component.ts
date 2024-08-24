@@ -213,9 +213,6 @@ export class ListProductsComponent implements OnInit {
           text: 'Product has been added to cart successfully!',
           icon: 'success',
           confirmButtonText: 'OK',
-          // willClose: () => {
-          //   window.location.reload();
-          // }
         });
       },
       error: (error) => {
