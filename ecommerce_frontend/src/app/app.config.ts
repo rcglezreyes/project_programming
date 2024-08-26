@@ -30,7 +30,10 @@ export const appConfig: ApplicationConfig = {
       withViewTransitions(),
       withHashLocation()
     ),
-    importProvidersFrom(SidebarModule, DropdownModule),
+    importProvidersFrom(
+      SidebarModule, 
+      DropdownModule
+    ),
     IconSetService,
     AuthService,
     provideAnimations(),

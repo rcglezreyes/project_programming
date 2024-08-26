@@ -109,7 +109,6 @@ export class ListCartsComponent implements OnInit {
     } else {
       this.cartService.loadListCarts();
       this.subscribeToCartList();
-      // this.updateTotal();
       this.setupSearch();
     }
   }

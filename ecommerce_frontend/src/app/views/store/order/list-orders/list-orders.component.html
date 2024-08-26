@@ -3,7 +3,7 @@
     <c-card class="mb-4" style="min-height: 480px;">
       <c-card-header class="d-flex justify-content-between align-items-center"
         style="padding-top: 0; padding-bottom: 0">
-        <strong>My Carts List</strong>
+        <strong>{{ title }} List</strong>
         <div style="min-width: 40%; margin-left: 10px; margin-top: 15px">
           <form [formGroup]="searchForm">
             <c-input-group class="mb-3">
@@ -17,12 +17,7 @@
           </form>
         </div>
         <div class="ms-auto">
-          <small class="text-muted me-2">Total Amount: <b>$ {{ totalSelectedAmountString }}</b></small>
-          <button [active]="'active'" [color]="'dark'" (click)="checkoutSelected()"
-          [size]="'sm'" cButton [disabled]="countSelected() === 0">
-            <svg cIcon class="me-2" name="cil-basket" size="sm"></svg>
-            Checkout
-          </button>
+          <small class="text-muted me-2">Total Paid: <b>$ {{ totalSelectedAmountString }}</b></small>
         </div>
       </c-card-header>
       <c-card-body style="min-height: 450px;">
@@ -30,20 +25,16 @@
           <thead cTableColor="dark">
             <tr>
               <ng-container *ngFor="let column of tableHeaders; let i = index">
-                <th *ngIf="i === 0" scope="col" (click)="selectAll()"
+                <th *ngIf="i === tableHeaders.length - 1 && isStaff === 'admin'" scope="col"
                   [ngStyle]="{'color': 'lightgray', 'cursor': 'pointer'}">
                   {{ column }}
                 </th>
-                <th *ngIf="i !== 0" scope="col">{{ column }}</th>
+                <th *ngIf="i !== tableHeaders.length - 1" scope="col">{{ column }}</th>
               </ng-container>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of filteredCarts; let i = index">
-              <td style="text-align: center; vertical-align: middle;">
-                <input type="checkbox" [(ngModel)]="item.selected" (change)="updateTotal()" class="custom-checkbox"
-                  checked>
-              </td>
+            <tr *ngFor="let item of filteredOrderItems; let i = index">
               <th scope="row" style="text-align: center; vertical-align: middle;">
                 {{ i + 1}}
               </th>
@@ -56,21 +47,24 @@
                 style="text-align: center; vertical-align: middle;">
                 {{ item.fields.product.fields.name}}
               </td>
-              <td *ngIf="item && item.fields" style="text-align: center; vertical-align: middle;">{{
-                item.fields.created_at | date: 'yyyy-MM-dd HH:mm'}}</td>
-              <td *ngIf="item && item.fields" style="text-align: center; vertical-align: middle;">
-                <input type="number" class="form-control" min="1" [(ngModel)]="item.fields.quantity"
-                  (blur)="manageCart(item)" (change)="updateTotal()"
-                  style="width: 100px; margin-left: 10px; text-align: center;" />
-              </td>
-              <td *ngIf="item && item.fields && item.fields.product"
+              <td *ngIf="item && item.fields && item.fields.order && item.fields.order.fields.customer"
                 style="text-align: center; vertical-align: middle;">
-                $ {{ item.fields.product.fields.price }}
+                {{ item.fields.order.fields.customer.fields.first_name}} 
+                {{ item.fields.order.fields.customer.fields.last_name}}
               </td>
-              <td *ngIf="item" style="text-align: center; vertical-align: middle;">
+              <td *ngIf="item && item.fields && item.fields.order" style="text-align: center; vertical-align: middle;">{{
+                item.fields.order.fields.created_at | date: 'yyyy-MM-dd HH:mm'}}</td>
+              <td *ngIf="item" style="text-align: center; vertical-align: middle; width: 100px;">
                 $ {{ calculateTotalAmount(item) }}
               </td>
-              <td *ngIf="item" style="text-align: center; vertical-align: middle;">
+              <td *ngIf="item && item.fields && item.fields.order && item.fields.order.fields.customer"
+                style="text-align: center; vertical-align: middle;">
+                {{ item.fields.order.fields.customer.fields.address}}, 
+                {{ item.fields.order.fields.customer.fields.city}}, 
+                {{ item.fields.order.fields.customer.fields.postal_code}} 
+              </td>
+              <td *ngIf="isStaff === 'admin'" 
+              style="text-align: center; vertical-align: middle;">
                 <button [active]="'active'" [color]="'danger'" [size]="'sm'" ngbTooltip="Delete"
                   (click)="onDelete(item.pk)" tooltipClass="custom-tooltip" cButton>
                   <svg cIcon class="me-2" name="cil-trash" size="sm" style="margin-left: 10px"></svg>

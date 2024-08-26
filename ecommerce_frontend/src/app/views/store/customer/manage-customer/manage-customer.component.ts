@@ -127,7 +127,7 @@ export class ManageCustomerComponent implements OnInit {
       const payload = this.isEditMode ?
                       { ...this.registerForm.value, id: this.customer.pk } :
                       this.registerForm.value;
-      this.registerService.manageCustomer(payload, false).subscribe({
+      this.registerService.manageCustomer(payload, false, false).subscribe({
         next: (response: IApiResponse<any[]>) => {
           console.log('Response:', response);
           Swal.fire({

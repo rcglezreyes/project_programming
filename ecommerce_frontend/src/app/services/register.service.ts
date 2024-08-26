@@ -19,10 +19,13 @@ export class RegisterService {
         );
     }
 
-    manageCustomer(payload: Object, isRegistration: boolean): Observable<any> {
+    manageCustomer(payload: Object, isRegistration: boolean, isProfileEdit: boolean): Observable<any> {
         if (isRegistration) {
             payload = { ...payload, is_registration: true };
             return this.webService.fetchWithoutToken('manage_customer', 'POST', payload);
+        }
+        else if (isProfileEdit) {
+            payload = { ...payload, is_profile_edit: true };
         }
         return this.webService.fetchWithToken('manage_customer', 'POST', payload);
     }

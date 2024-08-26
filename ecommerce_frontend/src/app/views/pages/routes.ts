@@ -21,5 +21,12 @@ export const routes: Routes = [
     data: {
       title: 'Register Page'
     }
-  }
+  },
+  // {
+  //   path: 'profile',
+  //   loadComponent: () => import('./user/profile/profile.component').then(m => m.ProfileComponent),
+  //   data: {
+  //     title: 'Profile Page'
+  //   }
+  // }
 ];

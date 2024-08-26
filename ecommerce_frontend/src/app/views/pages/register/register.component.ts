@@ -93,6 +93,7 @@ export class RegisterComponent implements OnInit {
       last_name: ['', Validators.required],
       username: ['', 
         Validators.required, 
+        Validators.minLength(6),
         this.validateExistingUsername.bind(this)
       ],
       email: [
@@ -131,7 +132,7 @@ export class RegisterComponent implements OnInit {
     
     if (this.registerForm.valid) {
       console.log('Form is valid, processing submission...');
-      this.registerService.manageCustomer(this.registerForm.value, true).subscribe({
+      this.registerService.manageCustomer(this.registerForm.value, true, false).subscribe({
         next: (response) => {
           console.log('Response:', response);
           this.router.navigate(['/login']);

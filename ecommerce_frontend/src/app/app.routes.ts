@@ -39,7 +39,15 @@ export const routes: Routes = [
       {
         path: 'pages',
         loadChildren: () => import('./views/pages/routes').then((m) => m.routes)
-      }
+      },
+      {
+        path: 'profile',
+        loadComponent: () => import('./views/pages/user/profile/profile.component').then(m => m.ProfileComponent),
+        canActivate: [AuthGuard],
+        data: {
+          title: 'Profile Page'
+        }
+      },
     ]
   },
   {

@@ -44,7 +44,7 @@ const options = [
     name: `${localStorage.getItem('isStaff') === 'admin' ? 'Manage' : 'My'} Orders`,
     url: '/store/orders',
     iconComponent: { name: 'cil-notes' },
-    isVisible: () => localStorage.getItem('isStaff') === 'user'
+    isVisible: true
   },
   {
     name: 'Administration',

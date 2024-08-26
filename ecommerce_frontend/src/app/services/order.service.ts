@@ -17,7 +17,7 @@ export class OrderService {
   }
 
   loadListOrders(): void {
-    const payload = {
+    const payload = localStorage.getItem('isStaff') === 'admin' ? {} : {
       customer_id: localStorage.getItem('customerId')
     };
     this.webService.fetchWithToken<IApiResponse<any[]>>('list_orders', 'GET', payload).subscribe({

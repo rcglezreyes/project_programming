@@ -84,7 +84,7 @@ export class LoginComponent {
       const { username, password } = this.loginForm.value;
   
       try {
-        const jwtResponse: any = await this.authService.login(username, password).toPromise();
+        const jwtResponse: any = await lastValueFrom(this.authService.login(username, password));
   
         if (!jwtResponse) {
           this.error = 'Invalid Credentials: No active account found with the given credentials';
@@ -105,7 +105,12 @@ export class LoginComponent {
           localStorage.setItem('username', loginResponse.username);
           localStorage.setItem('firstName', loginResponse.first_name);
           localStorage.setItem('lastName', loginResponse.last_name);
+          localStorage.setItem('email', loginResponse.email);
+          localStorage.setItem('numberOfLogins', loginResponse.number_of_logins);
           localStorage.setItem('customerId', loginResponse.customer?.id);
+          localStorage.setItem(
+            'customerLogged', loginResponse.customer ? JSON.stringify(loginResponse.customer) : ''
+          );
           await this.router.navigate(['/dashboard']);
           location.reload();
         } else {

@@ -47,6 +47,13 @@ export const routes: Routes = [
           title: 'Products'
         }
       },
+      {
+        path: 'orders',
+        loadComponent: () => import('./order/list-orders/list-orders.component').then(m => m.ListOrdersComponent),
+        data: {
+          title: 'Orders'
+        }
+      },
     ]
   }
 ];

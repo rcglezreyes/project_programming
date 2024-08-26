@@ -1,5 +1,21 @@
 import { DOCUMENT, NgStyle } from '@angular/common';
-import { Component, DestroyRef, effect, inject, OnInit, Renderer2, signal, WritableSignal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  effect,
+  inject,
+  OnInit,
+  Renderer2,
+  signal,
+  WritableSignal,
+  ViewChild,
+  ViewContainerRef,
+  AfterViewInit,
+  ComponentRef,
+  ViewChildren,
+  QueryList,
+  OnDestroy
+} from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ChartOptions } from 'chart.js';
 import {
@@ -21,10 +37,13 @@ import {
 } from '@coreui/angular';
 import { ChartjsComponent } from '@coreui/angular-chartjs';
 import { IconDirective } from '@coreui/icons-angular';
+import { Subscription } from 'rxjs';
+import { ToastersComponent } from '../toasters/toasters.component';
 
 import { WidgetsBrandComponent } from '../widgets/widgets-brand/widgets-brand.component';
 import { WidgetsDropdownComponent } from '../widgets/widgets-dropdown/widgets-dropdown.component';
 import { DashboardChartsData, IChartProps } from './dashboard-charts-data';
+import { CartService } from 'src/app/services/cart.service';
 
 interface IUser {
   name: string;
@@ -44,14 +63,39 @@ interface IUser {
   templateUrl: 'dashboard.component.html',
   styleUrls: ['dashboard.component.scss'],
   standalone: true,
-  imports: [WidgetsDropdownComponent, TextColorDirective, CardComponent, CardBodyComponent, RowComponent, ColComponent, ButtonDirective, IconDirective, ReactiveFormsModule, ButtonGroupComponent, FormCheckLabelDirective, ChartjsComponent, NgStyle, CardFooterComponent, GutterDirective, ProgressBarDirective, ProgressComponent, WidgetsBrandComponent, CardHeaderComponent, TableDirective, AvatarComponent]
+  imports: [
+    WidgetsDropdownComponent,
+    TextColorDirective,
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    ButtonDirective,
+    IconDirective,
+    ReactiveFormsModule,
+    ButtonGroupComponent,
+    FormCheckLabelDirective,
+    ChartjsComponent,
+    NgStyle,
+    CardFooterComponent,
+    GutterDirective,
+    ProgressBarDirective,
+    ProgressComponent,
+    WidgetsBrandComponent,
+    CardHeaderComponent,
+    TableDirective,
+    AvatarComponent,
+    ToastersComponent,
+  ],
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   readonly #destroyRef: DestroyRef = inject(DestroyRef);
   readonly #document: Document = inject(DOCUMENT);
   readonly #renderer: Renderer2 = inject(Renderer2);
   readonly #chartsData: DashboardChartsData = inject(DashboardChartsData);
+  numberCartItems: number = 0;
+  private cartsSubscription: Subscription = new Subscription();
 
   public users: IUser[] = [
     {
@@ -146,9 +190,68 @@ export class DashboardComponent implements OnInit {
     trafficRadio: new FormControl('Month')
   });
 
+  @ViewChild(ToastersComponent) toastr!: ToastersComponent;
+
+
+  public constructor(public cartService: CartService) { }
+
   ngOnInit(): void {
     this.initCharts();
     this.updateChartOnColorModeChange();
+    const isAdmin = localStorage.getItem('isStaff') === 'admin';
+    if (!isAdmin) {
+      this.cartService.loadListCarts();
+      this.cartsSubscription = this.cartService.getListCarts().subscribe((carts) => {
+        this.numberCartItems = carts.length;
+      });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.cartsSubscription) {
+      this.cartsSubscription.unsubscribe();
+    }
+  }
+
+  ngAfterViewInit(): void {
+    const isAdmin = localStorage.getItem('isStaff') === 'admin';
+    if (!isAdmin && this.numberCartItems > 0) {
+      this.showToast(
+        'light',
+        'Checkout Now!',
+        `You have ${this.numberCartItems} item(s) in cart to checkout`,
+        '#/store/carts'
+      );
+    }
+    const numberOfLogins = parseInt(localStorage.getItem('numberOfLogins') || '0');
+    if (numberOfLogins <= 1) {
+      const passwordChange = localStorage.getItem('passwordChange') === 'true'; 
+      if (!passwordChange) {
+        this.showToast(
+          'warning',
+          'Welcome!',
+          `Welcome ${localStorage.getItem('firstName')} ${localStorage.getItem('lastName')}, proceed to change your password`,
+          '#/profile'
+        );
+      }
+    }
+  }
+
+  showToast(type: string, title: string, message: string, href: string): void {
+    if (this.toastr) {
+      const customValues = {
+        autohide: true,
+        delay: 5000,
+        position: 'top-center',
+        fade: true,
+        closeButton: true,
+        color: type,
+        message: message,
+        title: title,
+        href: href
+      };
+      this.toastr.addCustomToast(customValues); // Llama al método en la instancia correcta
+    }
   }
 
   initCharts(): void {

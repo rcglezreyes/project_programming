@@ -188,6 +188,7 @@ export class ListProductsComponent implements OnInit {
 
   increaseQuantity(product: IProduct): void {
     product.quantity += 1;
+    product.quantity = Math.min(product.quantity, product.fields.stock);
   }
 
   decreaseQuantity(product: IProduct): void {

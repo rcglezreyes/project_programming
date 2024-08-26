@@ -27,6 +27,7 @@ class LoginUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(auto_now_add=True)
+    number_of_logins = models.PositiveIntegerField(default=0)
 
     objects = CustomUserManager()
 

@@ -43,15 +43,20 @@ def login_view(request):
                 login(request, user)
                 if not user.is_active:
                     return JsonResponse({'error': 'Invalid credentials', 'description' : 'Username does not exist'}, status=400)
+                user.number_of_logins += 1
+                user.save()
                 logger.info(f'User {username} logged in')
-                customer = Customer.objects.filter(user=user).first() if not user.is_staff else None
+                customer = Customer.objects.filter(user=user).first()
+                customer = model_to_dict(customer) if customer else None
                 return JsonResponse({
                     'status': 'success', 
                     'is_staff': 'admin' if user.is_staff else 'user', 
                     'username': user.username,
                     'first_name': user.first_name,
                     'last_name': user.last_name,
-                    'customer': model_to_dict(customer) if customer else None
+                    'email': user.email,
+                    'number_of_logins': user.number_of_logins,
+                    'customer': customer
                 }, status=200)
             login_user = LoginUser.objects.filter(username=username).first()
             if login_user:
@@ -75,6 +80,38 @@ def logout_view(request):
         logout(request) 
         return JsonResponse({'status': 'success'}, status=200)
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+#############################################
+# 3. Session Data
+#############################################
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_session_data(request):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        try:
+            username = request.GET.get('username')  
+            if not username:
+                return JsonResponse({'error': 'Username required', 'description': 'Username required'}, status=400)
+            user = LoginUser.objects.filter(username=username).first()
+            if user is not None:
+                customer = Customer.objects.filter(user=user).first()
+                customer = model_to_dict(customer) if customer else None
+                return JsonResponse({
+                    'status': 'success', 
+                    'is_staff': 'admin' if user.is_staff else 'user', 
+                    'username': user.username,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'email': user.email,
+                    'number_of_logins': user.number_of_logins,
+                    'customer': customer if customer else model_to_dict(user)
+                }, status=200)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON', 'description': 'Request is not in a valid format'}, status=400)
+    return JsonResponse({'error': 'Invalid token'}, status=401)
 
 # ***************************************** #
 
@@ -313,73 +350,79 @@ def list_orders(request):
             list_orders_query = Order.objects.filter(
                 customer__is_active=True, is_active=True
             ).select_related('customer').order_by('-created_at')    
+        list_orders_items_query = []
         for order in list_orders_query:
-            order.listOrderItem = OrderItem.objects.filter(order=order).select_related('product')
+            orders_items_query = OrderItem.objects.filter(order=order).select_related(
+                'product', 'order', 'order__customer', 'product__category', 'order__customer__country'
+            ).order_by('-order__created_at')
+            list_orders_items_query.extend(orders_items_query)
         batch_size = 100
         lists = []
-        for i in range(0, list_orders_query.count(), batch_size):
-            batch = list_orders_query[i:i + batch_size]
-            for order in batch:
-                order_data = {
-                    'pk': order.pk,
-                    'fields': {
-                        'id': order.id,
-                        'total': order.total,
-                        'created_at': order.created_at,
-                        'updated_at': order.updated_at,
-                        'is_active': order.is_active,
-                        'customer': {
-                            'pk': order.customer.pk,
-                            'fields': {
-                                'id': order.customer.id,
-                                'first_name': order.customer.first_name,
-                                'last_name': order.customer.last_name,
-                                'email': order.customer.email,
-                                'country': {
-                                    'pk': order.customer.country.pk,
-                                    'fields': {
-                                        'id': order.customer.country.id,
-                                        'name': order.customer.country.name
-                                    }
-                                },
-                                'city': order.customer.city,
-                                'address': order.customer.address,
-                                'postal_code': order.customer.postal_code,
-                                'phone': order.customer.phone
-                            }
-                        },
-                        'listOrderItem': [
-                            {
-                                'id': item.id,
-                                'product': {
-                                    'pk': item.product.pk,
-                                    'fields': {
-                                        'id': item.product.id,
-                                        'name': item.product.name,
-                                        'description': item.product.description,
-                                        'price': item.product.price,
-                                        'stock': item.product.stock,
-                                        'available': item.product.available,
-                                        'image': item.product.image,
-                                        'category': {
-                                            'pk': item.product.category.pk,
-                                            'fields': {
-                                                'id': item.product.category.id,
-                                                'name': item.product.category.name,
-                                                'sizes': item.product.category.sizes,
-                                                'types': item.product.category.types
-                                            }
+        
+        for i in range(0, len(list_orders_items_query), batch_size):
+            batch = list_orders_items_query[i:i + batch_size]
+            for order_item in batch:
+                order_data = { 
+                        'pk': order_item.pk,
+                        'fields': {
+                            'id': order_item.id,
+                            'order': {
+                                'pk': order_item.order.pk,
+                                'fields': {
+                                    'id': order_item.order.id,
+                                    'total': order_item.order.total,
+                                    'created_at': order_item.order.created_at,
+                                    'updated_at': order_item.order.updated_at,
+                                    'is_active': order_item.order.is_active,
+                                    'customer': {
+                                        'pk': order_item.order.customer.pk,
+                                        'fields': {
+                                            'id': order_item.order.customer.id,
+                                            'first_name': order_item.order.customer.first_name,
+                                            'last_name': order_item.order.customer.last_name,
+                                            'email': order_item.order.customer.email,
+                                            'country': {
+                                                'pk': order_item.order.customer.country.pk,
+                                                'fields': {
+                                                    'id': order_item.order.customer.country.id,
+                                                    'name': order_item.order.customer.country.name
+                                                }
+                                            },
+                                            'city': order_item.order.customer.city,
+                                            'address': order_item.order.customer.address,
+                                            'postal_code': order_item.order.customer.postal_code,
+                                            'phone': order_item.order.customer.phone
                                         }
                                     }
-                                },
-                                'quantity': item.quantity,
-                                'price': item.price,
-                                'size': item.size
-                            } for item in order.listOrderItem
-                        ]
+                                }
+                            },
+                            'product': {
+                                'pk': order_item.product.pk,
+                                'fields': {
+                                    'id': order_item.product.id,
+                                    'name': order_item.product.name,
+                                    'description': order_item.product.description,
+                                    'price': order_item.product.price,
+                                    'stock': order_item.product.stock,
+                                    'available': order_item.product.available,
+                                    'image': order_item.product.image,
+                                    'category': {
+                                        'pk': order_item.product.category.pk,
+                                        'fields': {
+                                            'id': order_item.product.category.id,
+                                            'name': order_item.product.category.name,
+                                            'sizes': order_item.product.category.sizes,
+                                            'types': order_item.product.category.types
+                                        }
+                                    }
+                                }
+                            },
+                            'quantity': order_item.quantity,
+                            'size': order_item.size,
+                            'is_active': order_item.is_active
+                        }     
                     }
-                }
-                lists.append(order_data)
+                lists.append(order_data) 
         return JsonResponse({'data': lists}, safe=False)
     return JsonResponse({'error': 'Invalid token'}, status=401)
 
@@ -399,15 +442,8 @@ def manage_customer(request):
     valid_token = validateJWTTokenRequest(request)
     data = json.loads(request.body)
     is_registration = data.get('is_registration', False)
-    if valid_token or is_registration:
-        try:
-            country = Country.objects.filter(pk=data['country']).first()
-            if not country:
-                return JsonResponse({'error': 'Invalid country'}, status=400)
-        except:
-            logger.error(traceback.format_exc())
-            return JsonResponse({'error': 'Invalid country'}, status=400)
-
+    is_profile_edit = data.get('is_profile_edit', False)
+    if valid_token or is_registration or is_profile_edit:
         try:
             user = LoginUser.objects.filter(Q(username=data.get('username', '')) | Q(email=data['email'])).first()
             
@@ -421,15 +457,24 @@ def manage_customer(request):
                     last_name=data['last_name'],
                     is_staff=False
                 )
-                user.set_password(password)
+                user.set_password(password) 
                 user.save()
             else:
                 user.username = data['username'] if 'username' in data else data['email'].split('@')[0]
-                user.set_password(data['password'] if 'password' in data else user.username)
+                password = None
+                if is_profile_edit:
+                    if 'new_password' in data:
+                        password = data['new_password']
+                elif 'password' in data:
+                    password = data['password']
+                if password:
+                    user.set_password(password)
                 user.email = data['email']
                 user.first_name = data['first_name']
                 user.last_name = data['last_name']
                 user.save()
+                if user.is_staff:
+                    return JsonResponse({'data': model_to_dict(user)}, status=400)
         except Exception as e:
             logger.error(traceback.format_exc())
             return JsonResponse({'error': 'Invalid data for user', 'details': str(e)}, status=400)
@@ -438,6 +483,13 @@ def manage_customer(request):
             customer = Customer.objects.filter(id=data.get('id', None)).first()
             if not customer:
                 customer = Customer.objects.create()
+            try:
+                country = Country.objects.filter(pk=data['country']).first()
+                if not country:
+                    return JsonResponse({'error': 'Invalid country'}, status=400)
+            except:
+                logger.error(traceback.format_exc())
+                return JsonResponse({'error': 'Invalid country'}, status=400)
             customer.first_name = data['first_name']
             customer.last_name = data['last_name']
             customer.email = data['email']
@@ -588,6 +640,8 @@ def manage_order(request):
             cart = Cart.objects.filter(id=item.get('idCart')).first()
             cart.is_active = False
             cart.save()
+            product.stock -= item.get('quantity', 1)
+            product.save()
         return JsonResponse({'data': data}, safe=False, status=200)
     return JsonResponse({'error': 'Invalid token or invalid registration'}, status=401)
 

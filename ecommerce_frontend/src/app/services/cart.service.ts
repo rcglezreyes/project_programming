@@ -17,18 +17,21 @@ export class CartService {
   }
 
   loadListCarts(): void {
-    const payload = {
-      customer_id: localStorage.getItem('customerId')
-    };
-    this.webService.fetchWithToken<IApiResponse<any[]>>('list_carts', 'GET', payload).subscribe({
-      next: (response: any) => {
-        const carts = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
-        this.cartsSubject.next(carts);
-      },
-      error: (error) => {
-        console.error('Request failed:', error);
-      }
-    });
+    if (localStorage.getItem('isStaff') !== 'admin') {
+      const payload = {
+        customer_id: localStorage.getItem('customerId')
+      };
+      this.webService.fetchWithToken<IApiResponse<any[]>>('list_carts', 'GET', payload).subscribe({
+        next: (response: any) => {
+          const carts = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+          this.cartsSubject.next(carts);
+          localStorage.setItem('numberCartItems', carts.length.toString());
+        },
+        error: (error) => {
+          console.error('Request failed:', error);
+        }
+      });
+    }
   }
 
   getListCarts(): Observable<any[]> {
@@ -52,6 +55,7 @@ export class CartService {
             currentCarts.push(payload);
           }
           this.cartsSubject.next([...currentCarts]);
+          localStorage.setItem('numberCartItems', currentCarts.length.toString());
         }
       })
     )

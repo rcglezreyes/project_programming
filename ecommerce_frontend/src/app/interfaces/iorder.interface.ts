@@ -1,11 +1,11 @@
-import { ICustomer } from './icustomer.interface';
+import { ICustomer, ICustomerFull } from './icustomer.interface';
 import { IProduct } from './iproduct.interface';
 
 export interface IOrder {
     pk: number;
     fields: {
         id: number;
-        customer: number;
+        customer: ICustomerFull;
         total: number;
         created_at: string;
         updated_at: string;

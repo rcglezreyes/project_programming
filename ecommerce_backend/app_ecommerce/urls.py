@@ -9,6 +9,7 @@ urlpatterns = [
     # authenticated views
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
+    path("get_session_data/", views.get_session_data, name="get_session_data"),
     # list views
     path("list_countries/", views.list_countries, name="list_countries"),
     path("list_users/", views.list_users, name="list_users"),

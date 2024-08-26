@@ -157,6 +157,7 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit, O
         this.numberCartItems = carts.length;
       });
     }
+    // this.mostrarToast();
   }
 
   ngOnDestroy(): void {
@@ -177,6 +178,16 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit, O
       cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
+        localStorage.removeItem('isStaff');
+        localStorage.removeItem('username');
+        localStorage.removeItem('firstName');
+        localStorage.removeItem('lastName');
+        localStorage.removeItem('email');
+        localStorage.removeItem('numberOfLogins');
+        localStorage.removeItem('customerId');
+        localStorage.removeItem('customerLogged');
+        localStorage.removeItem('passwordChange');
+        localStorage.clear();
         this.authService.logout();
       }
     });
@@ -234,5 +245,5 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit, O
     this.isDrawerOpen = false;
     this.router.navigate(['/store/carts']);
   }
-  
+
 }
