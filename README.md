@@ -91,9 +91,23 @@ Finalmente accediendo a la URL: ```https://127.0.0.1/``` puede levantar la aplic
 
 ## Estructura del proyecto
 
-![Estructura](frontend/media/images/estructura.png)
+![Estructura](ecommerce_frontend/media/images/estructura.png)
 
-En la carpeta ```scripts``` están los script de JS
+Muestra las carpetas de las 4 imágenes del proyecto:
+backend, frontend, nginx y postgres
+En el caso de nginx, se deben generar los certificados si se correrá local. Estos son los comandos:
+```openssl genpkey -algorithm RSA -out nginx/certificates/DNS/dns_key.pem```
+
+```openssl req -new -key nginx/certificates/DNS/dns_key.pem -x509 -days 365 -out nginx/certificates/DNS/dns_cert.crt```
+
+```openssl pkcs12 -export -out nginx/certificates/DNS/dns_cert.pfx -inkey nginx/certificates/DNS/dns_key.pem -in nginx/certificates/DNS/dns_cert.crt```
+
+
+```openssl pkcs12 -in nginx/certificates/DNS/dns_cert.pfx -out nginx/certificates/DNS/dns_cert.pem -nodes -clcerts```
+
+```openssl pkcs12 -in nginx/certificates/DNS/dns_cert.pfx -out nginx/certificates/DNS/dns_key.pem -nodes -nocerts```
+
+```openssl pkcs12 -in nginx/certificates/DNS/dns_cert.pfx -out nginx/certificates/DNS/dns_chain.pem -nodes -nokeys -clcerts```
 
 ## Tecnologías usadas
 
