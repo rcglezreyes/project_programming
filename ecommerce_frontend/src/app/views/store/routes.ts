@@ -54,6 +54,13 @@ export const routes: Routes = [
           title: 'Orders'
         }
       },
+      {
+        path: 'payment',
+        loadComponent: () => import('./payment/payment.component').then(m => m.PaymentComponent),
+        data: {
+          title: 'Payment'
+        }
+      },
     ]
   }
 ];

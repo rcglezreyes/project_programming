@@ -65,3 +65,14 @@
   object-fit: cover; /* Recorta la imagen para que llene el contenedor sin distorsionarse */
 }
   
+.border-red {
+  border: 1px solid red;
+}
+
+.border-bottom-red {
+  border-bottom: 1px solid red;
+}
+
+.color-red {
+  color: red;
+}

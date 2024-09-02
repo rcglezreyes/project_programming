@@ -7,4 +7,4 @@ keepalive = 5
 accesslog = '-'
 errorlog = '-'
 loglevel = 'info'
-wsgi_app = 'ecommerce_backend.wsgi:application'
+wsgi_app = '_ecommerce_backend.wsgi:application'

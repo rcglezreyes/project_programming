@@ -76,10 +76,14 @@
         <ng-container *ngFor="let item of filteredProducts; let i = index">
           <ng-container *ngIf="item.fields.available">
             <c-col md="6">
-              <c-card class="mb-3">
-                <c-card-header class="d-flex justify-content-between">
-                  <strong>{{ item.fields.name }}</strong>
-                  <small style="font-size: 11px;">({{item.fields.description}})</small>
+              <c-card class="mb-3" [ngClass]="{'border-red': item.fields.stock < 10}">
+                <c-card-header class="d-flex justify-content-between" [ngClass]="{'border-bottom-red': item.fields.stock < 10}">
+                  <strong [ngClass]="{'color-red': item.fields.stock < 10}">
+                    {{ item.fields.name }}
+                  </strong>
+                  <small style="font-size: 11px;" [ngClass]="{'color-red': item.fields.stock < 10}">
+                    ({{item.fields.description}})
+                  </small>
                 </c-card-header>
                 <c-card-body>
                   <c-row>

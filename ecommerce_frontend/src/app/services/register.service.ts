@@ -22,17 +22,17 @@ export class RegisterService {
     manageCustomer(payload: Object, isRegistration: boolean, isProfileEdit: boolean): Observable<any> {
         if (isRegistration) {
             payload = { ...payload, is_registration: true };
-            return this.webService.fetchWithoutToken('manage_customer', 'POST', payload);
+            return this.webService.fetchWithoutToken('customers/manage_customer', 'POST', payload);
         }
         else if (isProfileEdit) {
             payload = { ...payload, is_profile_edit: true };
         }
-        return this.webService.fetchWithToken('manage_customer', 'POST', payload);
+        return this.webService.fetchWithToken('customers/manage_customer', 'POST', payload);
     }
 
 
     checkExistingUsername(username: string): Observable<any> {
-        return this.webService.fetchWithoutToken('list_users', 'GET', { username: username }).pipe(
+        return this.webService.fetchWithoutToken('users/list_users', 'GET', { username: username }).pipe(
             map(response => {
                 return response;
             })
@@ -40,7 +40,7 @@ export class RegisterService {
     }
 
     checkExistingEmailInUsers(email: string): Observable<any> {
-        return this.webService.fetchWithoutToken('list_users', 'GET', { email: email }).pipe(
+        return this.webService.fetchWithoutToken('users/list_users', 'GET', { email: email }).pipe(
             map(response => {
                 return response;
             })
@@ -48,24 +48,11 @@ export class RegisterService {
     }
 
     checkExistingEmailInCustomers(email: string): Observable<any> {
-        return this.webService.fetchWithoutToken('list_customers', 'GET', { email: email }).pipe(
+        return this.webService.fetchWithoutToken('customers/list_customers', 'GET', { email: email }).pipe(
             map(response => {
                 return response;
             })
         );
     }
-
-
-    //   createNewUser(payload: Object) {
-    //     return this.webService.post('create_user', payload);
-    //   }
-
-    //   updateUser(payload: Object, user_id: number) {
-    //     return this.webService.put('update_user', payload, user_id);
-    //   }
-
-    //   deleteUser(user_id: number) {
-    //     return this.webService.delete('delete_user', user_id);
-    //   }
 
 }

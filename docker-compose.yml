@@ -10,7 +10,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DJANGO_SETTINGS_MODULE=ecommerce_backend.settings
+      - DJANGO_SETTINGS_MODULE=_ecommerce_backend.settings
       - DJANGO_SUPERUSER_USERNAME=admin
       - DJANGO_SUPERUSER_EMAIL=admin@example.com
       - DJANGO_SUPERUSER_PASSWORD=admin
@@ -18,7 +18,7 @@ services:
       - LOGINUSER_EMAIL=test@example.com
       - LOGINUSER_PASSWORD=test
     env_file:
-      - ./ecommerce_backend/ecommerce_backend/.env
+      - ./ecommerce_backend/_ecommerce_backend/.env
     networks:
       - programming_the_internet_module
 
@@ -40,7 +40,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/scripts_db:/docker-entrypoint-initdb.d
     environment:
-      - POSTGRES_DB=ecommerce_dev_db
+      - POSTGRES_DB=ecommerce_qa_db
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     ports:

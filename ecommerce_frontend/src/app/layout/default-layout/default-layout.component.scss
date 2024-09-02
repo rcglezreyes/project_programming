@@ -8,6 +8,20 @@
   }
 }
 
+.centered-image {
+  display: block;
+  margin-left: 10px;
+  margin-right: auto;
+}
+
+.faded-border {
+  display: block;
+  margin: 0 auto;
+  -webkit-mask-image: radial-gradient(circle, white 70%, transparent 100%);
+  mask-image: radial-gradient(circle, white 70%, transparent 100%);
+  border-radius: 10px; /* Para bordes redondeados, opcional */
+}
+
 // ng-scrollbar css variables
 //.cui-scrollbar {
 //  --scrollbar-border-radius: 7px;

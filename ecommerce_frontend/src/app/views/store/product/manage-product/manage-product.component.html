@@ -69,26 +69,31 @@
             </c-form-check>
           </c-col>
 
-          <c-col md="12">
+          <c-col md="6">
             <label cLabel for="description">Description</label>
             <c-input-group class="mb-3">
               <textarea formControlName="description" autoComplete="description" cFormControl></textarea>
             </c-input-group>
           </c-col>
 
-          <c-col [md]="previewUrl ? 10 : 12" [ngStyle]="{ 'padding-top': previewUrl ? '30px' : '0' }">
+          <c-col [md]="previewUrl ? 4 : 6">
             <label cLabel for="file" style="font-weight: bold; margin-bottom: 8px;">Image</label>
             <c-input-group class="mb-3" style="border: 1px solid #ced4da; border-radius: 4px; padding: 10px;">
               <input formControlName="file" autoComplete="file" cFormControl type="file"
-                (change)="onFileSelected($event)" style="border: none; padding: 5px 10px; cursor: pointer;" />
+                (change)="onFileSelected($event)" 
+                style="border: none; padding: 5px 10px; cursor: pointer;" 
+                [ngClass]="{'is-invalid': registerForm.get('file')?.invalid && registerForm.get('file')?.touched}"/>
             </c-input-group>
+            <div *ngIf="registerForm.get('file')?.invalid && registerForm.get('file')?.touched" class="c-form-feedback">
+              Image is required
+            </div>
           </c-col>
 
           <c-col *ngIf="previewUrl" md="2" style="position: relative;">
             <div
               style="border: 1px solid #e5dddd; border-radius: 4px; padding: 5px; margin-left: 20px; text-align: center; background-color: #f8f9fa;">
-              <h6 style="font-size: 14px; font-weight: bold; margin-bottom: 5px; cursor: pointer;" 
-              (click)="clearPreview()">Clear Preview</h6>
+              <h6 style="font-size: 14px; font-weight: bold; margin-bottom: 5px; cursor: pointer;"
+                (click)="clearPreview()">Clear Preview</h6>
               <img [src]="previewUrl" alt="Preview" width="100%" style="border-radius: 4px;" />
               <button (click)="clearPreview()"
                 style="position: absolute; top: 5px; right: 10px; background: none; border: none; cursor: pointer;">

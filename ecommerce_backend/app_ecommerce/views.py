@@ -1,29 +1,29 @@
+from functools import reduce
+from email.mime.image import MIMEImage
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.core import serializers
-from django.db.models import Q
 from django.forms.models import model_to_dict
-from django.db import transaction
+from django.core.mail import send_mail, EmailMultiAlternatives, EmailMessage
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from django.conf import settings
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from app_ecommerce.models import LoginUser, Country, Customer, Category, Product, Cart, Order, OrderItem
+from rest_framework.permissions import IsAuthenticated
+from app_ecommerce.models import Country
+from customers_ecommerce.models import Customer
+from users_ecommerce.models import LoginUser
 import json
 import logging
-import traceback
 import os
+
 
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-
-#############################################
-# Authenticated views
-#############################################
 
 #############################################
 # 1. Login view
@@ -113,15 +113,6 @@ def get_session_data(request):
             return JsonResponse({'error': 'Invalid JSON', 'description': 'Request is not in a valid format'}, status=400)
     return JsonResponse({'error': 'Invalid token'}, status=401)
 
-# ***************************************** #
-
-#############################################
-# Lists views
-#############################################
-
-#############################################
-# 1. List Countries
-#############################################
 
 def list_countries(request):
     list_query = Country.objects.filter(is_active=True).order_by('name')
@@ -133,658 +124,6 @@ def list_countries(request):
     items_data = serializers.serialize('json', lists)
     return JsonResponse({'data': items_data}, safe=False)
 
-#############################################
-# 2. List Users
-#############################################
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def list_users(request):
-    valid_token = validateJWTTokenRequest(request)
-    email = request.GET.get('email', None)
-    username = request.GET.get('username', None)
-    if valid_token or email or username:
-        if email:
-            list_query = LoginUser.objects.filter(email=email).order_by('username')
-        elif username:
-            list_query = LoginUser.objects.filter(username=username).order_by('username')
-        elif valid_token:
-            list_query = LoginUser.objects.filter(is_active=True).order_by('username')
-        batch_size = 100 
-        lists = []
-        for i in range(0, list_query.count(), batch_size):
-            batch = list_query[i:i + batch_size]
-            lists.extend(batch) 
-        items_data = serializers.serialize('json', lists)
-        return JsonResponse({'data': items_data}, safe=False)
-    return JsonResponse({'error': 'Invalid token'}, status=401)
-
-
-#############################################
-# 3. List Customers
-#############################################
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def list_customers(request):
-    valid_token = validateJWTTokenRequest(request)
-    email = request.GET.get('email', None)
-    if valid_token or email:
-        if email:
-            list_query = Customer.objects.filter(email=email).order_by('first_name')
-        elif valid_token:
-            list_query = Customer.objects.filter(is_active=True).order_by('first_name')
-        batch_size = 100 
-        lists = []
-        for i in range(0, list_query.count(), batch_size):
-            batch = list_query[i:i + batch_size]
-            lists.extend(batch) 
-        items_data = serializers.serialize('json', lists)
-        return JsonResponse({'data': items_data}, safe=False)
-    return JsonResponse({'error': 'Invalid token'}, status=401)
-
-#############################################
-# 4. List Categories
-#############################################
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def list_categories(request):
-    valid_token = validateJWTTokenRequest(request)
-    if valid_token:
-        list_query = Category.objects.filter(is_active=True).order_by('name')
-        batch_size = 100 
-        lists = []
-        for i in range(0, list_query.count(), batch_size):
-            batch = list_query[i:i + batch_size]
-            lists.extend(batch) 
-        items_data = serializers.serialize('json', lists)
-        return JsonResponse({'data': items_data}, safe=False)
-    return JsonResponse({'error': 'Invalid token'}, status=401)
-
-#############################################
-# 5. List Products
-#############################################
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def list_products(request):
-    valid_token = validateJWTTokenRequest(request)
-    if valid_token:
-        list_query = Product.objects.filter(is_active=True).select_related('category').order_by('name')
-
-        batch_size = 100 
-        lists = []
-        for i in range(0, list_query.count(), batch_size):
-            batch = list_query[i:i + batch_size]
-            for product in batch:
-                product_data = {
-                    'pk': product.pk,
-                    'fields': {
-                        'id': product.id,
-                        'name': product.name,
-                        'description': product.description,
-                        'price': product.price,
-                        'stock': product.stock,
-                        'available': product.available,
-                        'image': product.image,
-                        'category': {
-                            'pk': product.category.pk,
-                            'fields': {
-                                'id': product.category.id,
-                                'name': product.category.name,
-                                'sizes': product.category.sizes,
-                                'types': product.category.types
-                            }
-                        }
-                    }
-                }
-                lists.append(product_data)
-
-        return JsonResponse({'data': lists}, safe=False)
-    
-    return JsonResponse({'error': 'Invalid token'}, status=401)
-
-
-#############################################
-# 6. List Carts
-#############################################
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def list_carts(request):
-    valid_token = validateJWTTokenRequest(request)
-    if valid_token:
-        if 'customer_id' in request.GET:
-            customer_id = request.GET.get('customer_id')
-            list_query = Cart.objects.filter(
-                is_active=True, customer__is_active=True, product__is_active=True, customer__id=customer_id
-            ).select_related(
-                'product__category', 'customer__country'
-            ).order_by('-created_at')
-        else:
-            list_query = Cart.objects.filter(
-                is_active=True, customer__is_active=True, product__is_active=True
-            ).select_related(
-                'product__category', 'customer__country'
-            ).order_by('-created_at')
-
-        batch_size = 100 
-        lists = []
-        for i in range(0, list_query.count(), batch_size):
-            batch = list_query[i:i + batch_size]
-            for cart in batch:
-                cart_data = {
-                    'pk': cart.pk,
-                    'fields': {
-                        'id': cart.id,
-                        'quantity': cart.quantity,
-                        'created_at': cart.created_at,
-                        'updated_at': cart.updated_at,
-                        'is_active': cart.is_active,
-                        'product': {
-                            'pk': cart.product.pk,
-                            'fields': {
-                                'id': cart.product.id,
-                                'name': cart.product.name,
-                                'description': cart.product.description,
-                                'price': cart.product.price,
-                                'stock': cart.product.stock,
-                                'available': cart.product.available,
-                                'image': cart.product.image,
-                                'category': {
-                                    'pk': cart.product.category.pk,
-                                    'fields': {
-                                        'id': cart.product.category.id,
-                                        'name': cart.product.category.name,
-                                        'sizes': cart.product.category.sizes,
-                                        'types': cart.product.category.types
-                                    }
-                                }
-                            }
-                        },
-                        'customer': {
-                            'pk': cart.customer.pk,
-                            'fields': {
-                                'id': cart.customer.id,
-                                'first_name': cart.customer.first_name,
-                                'last_name': cart.customer.last_name,
-                                'email': cart.customer.email,
-                                'country': {
-                                    'pk': cart.customer.country.pk,
-                                    'fields': {
-                                        'id': cart.customer.country.id,
-                                        'name': cart.customer.country.name
-                                    }
-                                },
-                                'city': cart.customer.city,
-                                'address': cart.customer.address,
-                                'postal_code': cart.customer.postal_code,
-                                'phone': cart.customer.phone
-                            }
-                        },
-                    }
-                }
-                lists.append(cart_data)
-
-        return JsonResponse({'data': lists}, safe=False)
-    
-    return JsonResponse({'error': 'Invalid token'}, status=401)
-
-
-#############################################
-# 7. List Orders
-#############################################
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def list_orders(request):
-    valid_token = validateJWTTokenRequest(request)
-    if valid_token:
-        if 'customer_id' in request.GET:
-            customer_id = request.GET.get('customer_id')
-            list_orders_query = Order.objects.filter(
-                customer__is_active=True, customer__id=customer_id, is_active=True
-            ).select_related('customer').order_by('-created_at')
-        else:
-            list_orders_query = Order.objects.filter(
-                customer__is_active=True, is_active=True
-            ).select_related('customer').order_by('-created_at')    
-        list_orders_items_query = []
-        for order in list_orders_query:
-            orders_items_query = OrderItem.objects.filter(order=order).select_related(
-                'product', 'order', 'order__customer', 'product__category', 'order__customer__country'
-            ).order_by('-order__created_at')
-            list_orders_items_query.extend(orders_items_query)
-        batch_size = 100
-        lists = []
-        
-        for i in range(0, len(list_orders_items_query), batch_size):
-            batch = list_orders_items_query[i:i + batch_size]
-            for order_item in batch:
-                order_data = { 
-                        'pk': order_item.pk,
-                        'fields': {
-                            'id': order_item.id,
-                            'order': {
-                                'pk': order_item.order.pk,
-                                'fields': {
-                                    'id': order_item.order.id,
-                                    'total': order_item.order.total,
-                                    'created_at': order_item.order.created_at,
-                                    'updated_at': order_item.order.updated_at,
-                                    'is_active': order_item.order.is_active,
-                                    'customer': {
-                                        'pk': order_item.order.customer.pk,
-                                        'fields': {
-                                            'id': order_item.order.customer.id,
-                                            'first_name': order_item.order.customer.first_name,
-                                            'last_name': order_item.order.customer.last_name,
-                                            'email': order_item.order.customer.email,
-                                            'country': {
-                                                'pk': order_item.order.customer.country.pk,
-                                                'fields': {
-                                                    'id': order_item.order.customer.country.id,
-                                                    'name': order_item.order.customer.country.name
-                                                }
-                                            },
-                                            'city': order_item.order.customer.city,
-                                            'address': order_item.order.customer.address,
-                                            'postal_code': order_item.order.customer.postal_code,
-                                            'phone': order_item.order.customer.phone
-                                        }
-                                    }
-                                }
-                            },
-                            'product': {
-                                'pk': order_item.product.pk,
-                                'fields': {
-                                    'id': order_item.product.id,
-                                    'name': order_item.product.name,
-                                    'description': order_item.product.description,
-                                    'price': order_item.product.price,
-                                    'stock': order_item.product.stock,
-                                    'available': order_item.product.available,
-                                    'image': order_item.product.image,
-                                    'category': {
-                                        'pk': order_item.product.category.pk,
-                                        'fields': {
-                                            'id': order_item.product.category.id,
-                                            'name': order_item.product.category.name,
-                                            'sizes': order_item.product.category.sizes,
-                                            'types': order_item.product.category.types
-                                        }
-                                    }
-                                }
-                            },
-                            'quantity': order_item.quantity,
-                            'size': order_item.size,
-                            'is_active': order_item.is_active
-                        }     
-                    }
-                lists.append(order_data) 
-        return JsonResponse({'data': lists}, safe=False)
-    return JsonResponse({'error': 'Invalid token'}, status=401)
-
-# ***************************************** #
-    
-#############################################
-# Manage views
-#############################################
-
-#############################################
-# 1. Manage Customer
-#############################################
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def manage_customer(request):
-    valid_token = validateJWTTokenRequest(request)
-    data = json.loads(request.body)
-    is_registration = data.get('is_registration', False)
-    is_profile_edit = data.get('is_profile_edit', False)
-    if valid_token or is_registration or is_profile_edit:
-        try:
-            user = LoginUser.objects.filter(Q(username=data.get('username', '')) | Q(email=data['email'])).first()
-            
-            if not user:
-                username = data['username'] if 'username' in data else data['email'].split('@')[0]
-                password = data['password'] if 'password' in data else username
-                user = LoginUser.objects.create(
-                    username=username,
-                    email=data['email'],
-                    first_name=data['first_name'],
-                    last_name=data['last_name'],
-                    is_staff=False
-                )
-                user.set_password(password) 
-                user.save()
-            else:
-                user.username = data['username'] if 'username' in data else data['email'].split('@')[0]
-                password = None
-                if is_profile_edit:
-                    if 'new_password' in data:
-                        password = data['new_password']
-                elif 'password' in data:
-                    password = data['password']
-                if password:
-                    user.set_password(password)
-                user.email = data['email']
-                user.first_name = data['first_name']
-                user.last_name = data['last_name']
-                user.save()
-                if user.is_staff:
-                    return JsonResponse({'data': model_to_dict(user)}, status=400)
-        except Exception as e:
-            logger.error(traceback.format_exc())
-            return JsonResponse({'error': 'Invalid data for user', 'details': str(e)}, status=400)
-
-        try:
-            customer = Customer.objects.filter(id=data.get('id', None)).first()
-            if not customer:
-                customer = Customer.objects.create()
-            try:
-                country = Country.objects.filter(pk=data['country']).first()
-                if not country:
-                    return JsonResponse({'error': 'Invalid country'}, status=400)
-            except:
-                logger.error(traceback.format_exc())
-                return JsonResponse({'error': 'Invalid country'}, status=400)
-            customer.first_name = data['first_name']
-            customer.last_name = data['last_name']
-            customer.email = data['email']
-            customer.country = country
-            customer.city = data['city']
-            customer.address = data['address']
-            customer.postal_code = data['postal_code']
-            customer.phone = data['phone']
-            customer.user = user
-            customer.save()
-        except:
-            logger.error(traceback.format_exc())
-            return JsonResponse({'error': 'Invalid data for customer'}, status=400)
-
-        return JsonResponse({'data': model_to_dict(customer)}, safe=False, status=200)
-    return JsonResponse({'error': 'Invalid token or invalid registration'}, status=401)
-
-#############################################
-# 2. Manage Product
-#############################################
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def manage_product(request):
-    valid_token = validateJWTTokenRequest(request)
-    if valid_token:
-        try:
-            data = json.loads(request.body)
-            logger.info(f'Data: {data}')
-            
-            if 'category' not in data:
-                return JsonResponse({'error': 'Category not provided'}, status=400)
-            
-            req_category = data.get('category') 
-            
-            req_category = Category.objects.filter(pk=req_category.get('pk')).first().pk \
-                           if isinstance(req_category, dict) else req_category
-            
-            category = Category.objects.filter(pk=req_category).first()
-            if not category:
-                return JsonResponse({'error': 'Invalid category'}, status=400)
-            
-            required_fields = ['name', 'price', 'stock', 'available', 'image']
-            for field in required_fields:
-                if field not in data or data[field] in [None, '']:
-                    return JsonResponse({'error': f'Missing or invalid field: {field}'}, status=400)
-            
-            product = None
-            if 'id' in data:
-                product = Product.objects.filter(id=data['id']).first()
-            
-            if not product:
-                product = Product.objects.create()
-            
-            product.name = data['name']
-            product.description = data.get('description', '') 
-            product.price = data['price']
-            product.category = category
-            product.stock = data['stock']
-            product.available = data['available']
-            product.image = data['image']
-            product.save()
-
-            return JsonResponse({'data': model_to_dict(product)}, safe=False, status=200)
-        except Exception as e:
-            logger.error(traceback.format_exc())
-            return JsonResponse({'error': f'Invalid data for product: {str(e)}'}, status=400)
-
-    return JsonResponse({'error': 'Invalid token or invalid registration'}, status=401)
-
-
-#############################################
-# 3. Manage Cart
-#############################################
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def manage_cart(request):
-    valid_token = validateJWTTokenRequest(request)
-    is_edit = False
-    if valid_token:
-        data = json.loads(request.body)
-        if 'customer' not in data:
-            return JsonResponse({'error': 'Customer not provided'}, status=400)
-        customer = Customer.objects.filter(pk=data['customer']).first()
-        if not customer:
-            return JsonResponse({'error': 'Invalid customer'}, status=400)
-        if 'product' not in data:
-            return JsonResponse({'error': 'Product not provided'}, status=400)
-        product = Product.objects.filter(pk=data['product']).first()
-        if not product:
-            return JsonResponse({'error': 'Invalid product'}, status=400)
-        if 'quantity' not in data:
-            return JsonResponse({'error': 'Quantity not provided'}, status=400)
-        quantity = data['quantity']
-        if quantity < 1:
-            return JsonResponse({'error': 'Invalid quantity'}, status=400)
-        if 'id' in data:
-            is_edit = True
-            cart = Cart.objects.filter(id=data['id']).first()
-            if not cart:
-                return JsonResponse({'error': 'Invalid cart'}, status=400)
-            cart.quantity = quantity
-            cart.size = data.get('size', '')
-            cart.save()
-            response = fullCart(cart)
-        else:
-            cart = Cart.objects.create(customer=customer, product=product, quantity=quantity, size=data.get('size', ''))
-        data = model_to_dict(cart) if not is_edit else response
-        return JsonResponse({'data': data}, safe=False, status=200)
-    return JsonResponse({'error': 'Invalid token or invalid registration'}, status=401)
-
-
-#############################################
-# 4. Manage Order
-#############################################
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def manage_order(request):
-    valid_token = validateJWTTokenRequest(request)
-    is_edit = False
-    if valid_token:
-        data = json.loads(request.body)
-        if 'customer' not in data:
-            return JsonResponse({'error': 'Customer not provided'}, status=400)
-        customer = Customer.objects.filter(pk=data['customer']).first()
-        if not customer:
-            return JsonResponse({'error': 'Invalid customer'}, status=400)
-        if 'listOrderItem' not in data:
-            return JsonResponse({'error': 'List of orders not provided'}, status=400)
-        order = Order.objects.create(
-                customer=customer, 
-                total=data.get('total', 0)
-            )
-        order.save()
-        for item in data['listOrderItem']:
-            product = Product.objects.filter(pk=item['product']).first()
-            if not product:
-                return JsonResponse({'error': 'Invalid product'}, status=400)
-            OrderItem.objects.create(
-                order=order,
-                product=product,
-                quantity=item.get('quantity', 1),
-                price=product.price,
-                size=item.get('size', '')
-            )
-            cart = Cart.objects.filter(id=item.get('idCart')).first()
-            cart.is_active = False
-            cart.save()
-            product.stock -= item.get('quantity', 1)
-            product.save()
-        return JsonResponse({'data': data}, safe=False, status=200)
-    return JsonResponse({'error': 'Invalid token or invalid registration'}, status=401)
-
-# ***************************************** #
-
-#############################################
-# Delete views
-#############################################
-
-#############################################
-# 1. Delete customer
-#############################################
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])  # Ajusta los permisos según tu lógica
-@transaction.atomic
-def delete_customer(request):
-    try:
-        data = json.loads(request.body)
-        customer_id = data.get('id')
-        
-        if not customer_id:
-            return JsonResponse({'error': 'Customer ID not provided'}, status=400)
-        
-        customer = Customer.objects.filter(id=customer_id, is_active=True).first()
-        
-        if not customer:
-            return JsonResponse({'error': 'Customer not found or already inactive'}, status=404)
-        
-        customer.is_active = False
-        customer.save()
-        user = customer.user
-        user.is_active = False
-        user.save()
-        
-        return JsonResponse({'message': 'Customer deactivated successfully'}, status=200)
-    
-    except Exception as e:
-        logger.error(f"Error deactivating customer: {str(e)}")
-        return JsonResponse({'error': 'An error occurred while deactivating the customer'}, status=500)
-    
-    
-#############################################
-# 2. Delete product
-#############################################
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])  # Ajusta los permisos según tu lógica
-@transaction.atomic
-def delete_product(request):
-    try:
-        data = json.loads(request.body)
-        product_id = data.get('id')
-        
-        if not product_id:
-            return JsonResponse({'error': 'Product ID not provided'}, status=400)
-        
-        product = Product.objects.filter(id=product_id, is_active=True).first()
-        
-        if not product:
-            return JsonResponse({'error': 'Product not found or already inactive'}, status=404)
-        
-        product.is_active = False
-        product.save()
-        
-        return JsonResponse({'message': 'Product deactivated successfully'}, status=200)
-    
-    except Exception as e:
-        logger.error(f"Error deactivating product: {str(e)}")
-        return JsonResponse({'error': 'An error occurred while deactivating the product'}, status=500)
-    
-    
-#############################################
-# 3. Delete cart
-#############################################
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])  # Ajusta los permisos según tu lógica
-@transaction.atomic
-def delete_cart(request):
-    try:
-        data = json.loads(request.body)
-        cart_id = data.get('id')
-        
-        if not cart_id:
-            return JsonResponse({'error': 'Cart ID not provided'}, status=400)
-        
-        cart = Cart.objects.filter(id=cart_id, is_active=True).first()
-        
-        if not cart:
-            return JsonResponse({'error': 'Cart not found or already inactive'}, status=404)
-        
-        cart.is_active = False
-        cart.save()
-        
-        return JsonResponse({'message': 'Cart deactivated successfully'}, status=200)
-    
-    except Exception as e:
-        logger.error(f"Error deactivating cart: {str(e)}")
-        return JsonResponse({'error': 'An error occurred while deactivating the cart'}, status=500)
-
-# ***************************************** #
-
-#############################################
-# Upload views
-#############################################
-
-#############################################
-# 1. Upload Image Products
-#############################################
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])  
-def upload_image(request):
-    valid_token = validateJWTTokenRequest(request)
-    if valid_token:
-        if 'file' not in request.FILES:
-            return JsonResponse({'error': 'No file provided'}, status=400)
-        file = request.FILES['file']
-        logger.info(f'File: {file}')
-        if file:
-            try:
-                file_path = os.path.join(settings.MEDIA_ROOT, file.name)
-                with open(file_path, 'wb+') as destination:
-                    for chunk in file.chunks():
-                        destination.write(chunk)
-                image_url = f'/media/{file.name}'
-                return JsonResponse({'imageUrl': image_url})
-            except Exception as e:
-                logger.error(f'File upload failed: {str(e)}')
-                return JsonResponse({'error': 'File upload failed'}, status=400)
-    return JsonResponse({'error': 'Invalid token'}, status=401)
-
-
-# ***************************************** #
-
-#############################################
-# Extras
-#############################################
-
-#############################################
-# 1. Validate Token
-#############################################
 
 def validateJWTTokenRequest(request):
     auth_header = request.headers.get('Authorization')
@@ -799,58 +138,63 @@ def validateJWTTokenRequest(request):
             return False
     else:
         return False    
+
+def send_orders_confirmation_email(config_info, list_orders_items_query):
+    total = sum(order['product']['price'] * order['quantity'] for order in list_orders_items_query)
     
-def fullCart(cart):
-    cart_data = {
-        'pk': cart.pk,
-        'fields': {
-            'id': cart.id,
-            'quantity': cart.quantity,
-            'created_at': cart.created_at,
-            'updated_at': cart.updated_at,
-            'is_active': cart.is_active,
-            'product': {
-                'pk': cart.product.pk,
-                'fields': {
-                    'id': cart.product.id,
-                    'name': cart.product.name,
-                    'description': cart.product.description,
-                    'price': cart.product.price,
-                    'stock': cart.product.stock,
-                    'available': cart.product.available,
-                    'image': cart.product.image,
-                    'category': {
-                        'pk': cart.product.category.pk,
-                        'fields': {
-                            'id': cart.product.category.id,
-                            'name': cart.product.category.name,
-                            'sizes': cart.product.category.sizes,
-                            'types': cart.product.category.types
-                        }
-                    }
-                }
-            },
-            'customer': {
-                'pk': cart.customer.pk,
-                'fields': {
-                    'id': cart.customer.id,
-                    'first_name': cart.customer.first_name,
-                    'last_name': cart.customer.last_name,
-                    'email': cart.customer.email,
-                    'country': {
-                        'pk': cart.customer.country.pk,
-                        'fields': {
-                            'id': cart.customer.country.id,
-                            'name': cart.customer.country.name
-                        }
-                    },
-                    'city': cart.customer.city,
-                    'address': cart.customer.address,
-                    'postal_code': cart.customer.postal_code,
-                    'phone': cart.customer.phone
-                }
-            },
+    products = [
+        {
+            'name': order['product']['name'],
+            'price': order['product']['price'],
+            'quantity': order['quantity'],
+            'amount': order['product']['price'] * order['quantity'],
+            'image_path': os.path.join(settings.BASE_DIR, order['product']['image']).strip('/'),
+            'image_cid': f"{order['product']['id']}_image"
         }
+        for order in list_orders_items_query
+    ]
+    
+    logo_path = os.path.join(settings.BASE_DIR, '/media/logo.png').strip('/')
+    logo_cid = 'logo_image'
+    
+    context = {
+        'full_name': config_info['full_name'],
+        'total': total,
+        'products': products,
+        'logo_cid': logo_cid,
+        'confirmation_number': config_info['confirmation_number']
     }
-    return cart_data
+    
+    html_content = render_to_string('email_order_template.html', context)
+    text_content = strip_tags(html_content)
+    
+    email_message = EmailMultiAlternatives(
+        subject=f"Details from your order # {config_info['confirmation_number']}",
+        body=text_content,
+        from_email=f"ECommerce Shopping ReyesFullStackDev <{settings.EMAIL_HOST_USER}>",
+        to=[config_info['email']]
+    )
+    email_message.attach_alternative(html_content, "text/html")
+    
+    
+    
+    with open(logo_path, 'rb') as img:
+        logo = MIMEImage(img.read())
+        logo.add_header('Content-ID', f'<{logo_cid}>')
+        logo.add_header('Content-Disposition', 'inline', filename=os.path.basename(logo_path))
+        email_message.attach(logo)
+    
+    for product in products:
+        image_path = product['image_path']
+        file_extension = os.path.splitext(image_path)[1].lower()  
+        mime_type = settings.MIME_TYPES.get(file_extension, 'application/octet-stream')
+        
+        with open(image_path, 'rb') as img:
+            product_image = MIMEImage(img.read(), _subtype=mime_type.split('/')[1])
+            product_image.add_header('Content-ID', f'<{product["image_cid"]}>')
+            product_image.add_header('Content-Disposition', 'inline', filename=os.path.basename(image_path))
+            email_message.attach(product_image)
+    
+    email_message.send()
+    
 

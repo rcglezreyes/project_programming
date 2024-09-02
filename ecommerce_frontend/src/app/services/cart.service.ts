@@ -21,7 +21,7 @@ export class CartService {
       const payload = {
         customer_id: localStorage.getItem('customerId')
       };
-      this.webService.fetchWithToken<IApiResponse<any[]>>('list_carts', 'GET', payload).subscribe({
+      this.webService.fetchWithToken<IApiResponse<any[]>>('carts/list_carts', 'GET', payload).subscribe({
         next: (response: any) => {
           const carts = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
           this.cartsSubject.next(carts);
@@ -39,7 +39,7 @@ export class CartService {
   }
 
   manageCart(payload: any): Observable<any> {
-    return this.webService.fetchWithToken('manage_cart', 'POST', payload).pipe(
+    return this.webService.fetchWithToken('carts/manage_cart', 'POST', payload).pipe(
       tap(response => {
         if (response) {
           const currentCarts = this.cartsSubject.value;
@@ -62,7 +62,7 @@ export class CartService {
   }
 
   deleteCart(payload: Object): Observable<any> {
-    return this.webService.fetchWithToken('delete_cart', 'POST', payload).pipe(
+    return this.webService.fetchWithToken('carts/delete_cart', 'POST', payload).pipe(
       map((response) => {
         this.loadListCarts();
         return response;

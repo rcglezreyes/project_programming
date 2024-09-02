@@ -28,4 +28,4 @@ COPY . /app/
 EXPOSE 8000
 
 # Ejecuta el script de inicialización y luego arranca Gunicorn y cron
-CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && python init_scripts.py && gunicorn --bind 0.0.0.0:8000 ecommerce_backend.wsgi:application "]
+CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && python init_scripts.py && gunicorn --bind 0.0.0.0:8000 _ecommerce_backend.wsgi:application "]

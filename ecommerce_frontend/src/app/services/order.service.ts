@@ -20,7 +20,7 @@ export class OrderService {
     const payload = localStorage.getItem('isStaff') === 'admin' ? {} : {
       customer_id: localStorage.getItem('customerId')
     };
-    this.webService.fetchWithToken<IApiResponse<any[]>>('list_orders', 'GET', payload).subscribe({
+    this.webService.fetchWithToken<IApiResponse<any[]>>('orders/list_orders', 'GET', payload).subscribe({
       next: (response: any) => {
         const orders = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
         this.ordersSubject.next(orders);
@@ -36,7 +36,7 @@ export class OrderService {
   }
 
   manageOrder(payload: any): Observable<any> {
-    return this.webService.fetchWithToken('manage_order', 'POST', payload).pipe(
+    return this.webService.fetchWithToken('orders/manage_order', 'POST', payload).pipe(
       tap(response => {
         if (response) {
           const currentOrders = this.ordersSubject.value;
@@ -58,7 +58,7 @@ export class OrderService {
   }
 
   deleteOrder(payload: Object): Observable<any> {
-    return this.webService.fetchWithToken('delete_order', 'POST', payload).pipe(
+    return this.webService.fetchWithToken('orders/delete_order', 'POST', payload).pipe(
       map((response) => {
         this.loadListOrders();
         return response;

@@ -17,7 +17,7 @@ export class ProductService {
   }
 
   loadListProducts(): void {
-    this.webService.fetchWithToken<IApiResponse<any[]>>('list_products').subscribe({
+    this.webService.fetchWithToken<IApiResponse<any[]>>('products/list_products').subscribe({
       next: (response: any) => {  
         const products = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
         this.productsSubject.next(products);
@@ -29,7 +29,7 @@ export class ProductService {
   }
 
   loadListCategories(): Observable<any> {
-    return this.webService.fetchWithToken('list_categories');
+    return this.webService.fetchWithToken('products/list_categories');
 }   
 
   getListProducts(): Observable<any[]> {
@@ -37,20 +37,20 @@ export class ProductService {
   }
 
   manageProduct(payload: Object): Observable<any> {
-    return this.webService.fetchWithToken('manage_product', 'POST', payload);
+    return this.webService.fetchWithToken('products/manage_product', 'POST', payload);
   }
 
   deleteProduct(payload: Object): Observable<any> {
-    return this.webService.fetchWithToken('delete_product', 'POST', payload).pipe(
+    return this.webService.fetchWithToken('products/delete_product', 'POST', payload).pipe(
       map((response) => {
-        this.loadListProducts(); // Recargar la lista después de eliminar
+        this.loadListProducts(); 
         return response;
       })
     );
   }
 
   uploadImage(formData: FormData): Observable<string> {
-    return this.webService.fetchWithToken<{ imageUrl: string }>('upload_image', 'UPLOAD', formData).pipe(
+    return this.webService.fetchWithToken<{ imageUrl: string }>('products/upload_image', 'UPLOAD', formData).pipe(
       map(event => {
         if (event instanceof HttpResponse) {
           return event.body?.imageUrl ?? ''; 

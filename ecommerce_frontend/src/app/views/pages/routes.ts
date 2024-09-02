@@ -22,11 +22,11 @@ export const routes: Routes = [
       title: 'Register Page'
     }
   },
-  // {
-  //   path: 'profile',
-  //   loadComponent: () => import('./user/profile/profile.component').then(m => m.ProfileComponent),
-  //   data: {
-  //     title: 'Profile Page'
-  //   }
-  // }
+  {
+    path: 'user/users',
+    loadComponent: () => import('./user/list-users/list-users.component').then(m => m.ListUsersComponent),
+    data: {
+      title: 'Users List'
+    }
+  }
 ];

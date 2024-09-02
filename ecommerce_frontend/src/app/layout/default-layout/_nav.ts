@@ -53,10 +53,10 @@ const options = [
   },
   {
     name: 'Users',
-    url: '/store/users',
+    url: '/pages/user/users',
     iconComponent: { name: 'cil-people' },
     isVisible: () => localStorage.getItem('isStaff') === 'admin' 
-  }
+  },
 ]
 
 export const navItems: INavDataExtended[] = options.filter(option => {

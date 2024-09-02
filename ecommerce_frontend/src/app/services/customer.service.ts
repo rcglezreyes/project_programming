@@ -16,7 +16,7 @@ export class CustomerService {
   }
 
   loadListCustomers(): void {
-    this.webService.fetchWithToken<IApiResponse<any[]>>('list_customers').subscribe({
+    this.webService.fetchWithToken<IApiResponse<any[]>>('customers/list_customers').subscribe({
       next: (response: any) => {  
         const customers = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
         this.customersSubject.next(customers);
@@ -34,18 +34,18 @@ export class CustomerService {
   manageCustomer(payload: Object, isRegistration: boolean, isProfileEdit: boolean): Observable<any> {
     if (isRegistration) {
       payload = { ...payload, is_registration: true };
-      return this.webService.fetchWithoutToken('manage_customer', 'POST', payload);
+      return this.webService.fetchWithoutToken('customers/manage_customer', 'POST', payload);
     }
     else if (isProfileEdit) {
       payload = { ...payload, is_profile_edit: true };
     }
-    return this.webService.fetchWithToken('manage_customer', 'POST', payload);
+    return this.webService.fetchWithToken('customers/manage_customer', 'POST', payload);
   }
 
   deleteCustomer(payload: Object): Observable<any> {
-    return this.webService.fetchWithToken('delete_customer', 'POST', payload).pipe(
+    return this.webService.fetchWithToken('customers/delete_customer', 'POST', payload).pipe(
       map((response) => {
-        this.loadListCustomers(); // Recargar la lista después de eliminar
+        this.loadListCustomers();
         return response;
       })
     );

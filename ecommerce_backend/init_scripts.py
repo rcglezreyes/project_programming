@@ -2,11 +2,13 @@ import os
 import django
 import requests
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ecommerce_backend.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', '_ecommerce_backend.settings')
 django.setup()
 
 from django.core.management import call_command
-from app_ecommerce.models import LoginUser, Country, Category
+from users_ecommerce.models import LoginUser
+from products_ecommerce.models import Category
+from app_ecommerce.models import Country
 
 def create_superuser():
     username = os.getenv('DJANGO_SUPERUSER_USERNAME')

@@ -1,0 +1,34 @@
+.custom-tooltip .tooltip-inner {
+    background-color: #33069c; /* Cambia esto al color de fondo que desees */
+    color: #ffffff; /* Cambia esto al color del texto que desees */
+    border-radius: 4px; /* Ajusta el radio del borde si es necesario */
+    padding: 8px 10px; /* Ajusta el padding si es necesario */
+  }
+  
+  .custom-tooltip .arrow::before {
+    border-top-color: #333333; /* Cambia esto al color de la flecha si el tooltip aparece arriba */
+    /* Si el tooltip aparece en otras direcciones, ajusta los siguientes estilos */
+    border-right-color: #333333;
+    border-bottom-color: #333333;
+    border-left-color: #333333;
+  }
+
+  .sticky-header thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: #343a40; /* Color del encabezado */
+    color: white; /* Color del texto */
+  }
+  
+  .sticky-header thead th {
+    // padding: 16px; 
+    text-align: left;
+    border-bottom: 2px solid #dee2e6;
+  }
+
+  c-card-body {
+    padding: 0;
+    max-height: 400px;
+    overflow-y: auto;
+  }

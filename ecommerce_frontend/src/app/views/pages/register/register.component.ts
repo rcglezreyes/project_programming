@@ -23,6 +23,7 @@ import { RegisterService } from '../../../services/register.service';
 import { WebRequestService } from 'src/app/web-services/web-request.service';
 import { ICountry } from 'src/app/interfaces/icountry.interface';
 import { ICustomer } from 'src/app/interfaces/icustomer.interface';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-register',
@@ -91,10 +92,14 @@ export class RegisterComponent implements OnInit {
     this.registerForm = this.fb.group({
       first_name: ['', Validators.required],
       last_name: ['', Validators.required],
-      username: ['', 
-        Validators.required, 
-        Validators.minLength(6),
-        this.validateExistingUsername.bind(this)
+      username: ['',
+        [
+          Validators.required,
+          Validators.minLength(6),
+        ],
+        [
+          this.validateExistingUsername.bind(this)
+        ]
       ],
       email: [
         '',
@@ -129,13 +134,20 @@ export class RegisterComponent implements OnInit {
     this.markFormGroupTouched(this.registerForm);
     // this.registerForm.get('username')?.updateValueAndValidity();
     // this.registerForm.get('email')?.updateValueAndValidity();
-    
+
     if (this.registerForm.valid) {
       console.log('Form is valid, processing submission...');
       this.registerService.manageCustomer(this.registerForm.value, true, false).subscribe({
         next: (response) => {
-          console.log('Response:', response);
-          this.router.navigate(['/login']);
+          Swal.fire({
+            title: 'Success!',
+            text: `Registration successful!`,
+            icon: 'success',
+            confirmButtonText: 'OK',
+            willClose: () => {
+              this.router.navigate(['/login']);
+            }
+          });
         },
         error: (error) => {
           console.error('Request failed:', error);

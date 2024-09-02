@@ -6,7 +6,8 @@
           <c-card class="p-4">
             <c-card-body>
               <form cForm [formGroup]="loginForm" (ngSubmit)="handleSubmit()">
-                <h1>Login</h1>
+                <img src="assets/images/logo.png" alt="logo" class="mb-4 faded-border" />
+                <h5>Login</h5>
                 <p class="text-body-secondary">Sign In to your account</p>
                 
                 <!-- Username -->
@@ -73,9 +74,9 @@
             </c-card-body>
           </c-card>
           <c-card [ngStyle]="{'minWidth.%': 44}" class="text-white bg-primary py-5">
-            <c-card-body class="text-center">
+            <c-card-body class="text-center" style="margin-top: 15%">
               <div>
-                <h2>Sign up</h2>
+                <h3>Sign up</h3>
                 <p>
                   Make your registration below
                 </p>

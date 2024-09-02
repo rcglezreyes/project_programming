@@ -236,9 +236,18 @@ export class ListCartsComponent implements OnInit {
       cancelButtonText: 'No, keep it'
     }).then((result) => {
       if (result.isConfirmed) {
+        localStorage.setItem('totalAmount', this.totalSelectedAmount.toFixed(2));
         const selectedItems = this.filteredCarts.filter(item => item.selected);
-        const payload: { customer: string | null; total: number } & { listOrderItem: any[] } = {
+        const payload: {
+          customer: string | null;
+          email: string | null;
+          full_name: string | null;
+          total: number
+        } &
+        { listOrderItem: any[] } = {
           customer: localStorage.getItem('customerId'),
+          email: localStorage.getItem('email'),
+          full_name: `${localStorage.getItem('firstName')} ${localStorage.getItem('lastName')}`,
           total: this.totalSelectedAmount,
           listOrderItem: selectedItems.map(item => ({
             product: item.fields.product.fields.id,
@@ -248,28 +257,7 @@ export class ListCartsComponent implements OnInit {
             idCart: item.fields.id
           }))
         };
-        try {
-          this.orderService.manageOrder(payload).subscribe({
-            next: () => {
-              Swal.fire({
-                title: 'Success!',
-                text: 'Cart(s) has been checked out successfully!',
-                icon: 'success',
-                confirmButtonText: 'OK',
-                willClose: () => {
-                  this.cartService.loadListCarts();
-                  this.subscribeToCartList();
-                }
-              });
-
-            },
-            error: (error) => {
-              console.error('Request failed:', error);
-            }
-          });
-        } catch (error) {
-          console.error('Request failed:', error);
-        }
+        this.router.navigate(['/store/payment'], { state: { payload: payload } });
       }
     });
   }

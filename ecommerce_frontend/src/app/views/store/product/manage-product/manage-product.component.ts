@@ -199,7 +199,8 @@ export class ManageProductComponent implements OnInit {
       category: [product ? product.fields.category : null, Validators.required],
       description: [product ? product.fields.description : ''],
       image: [product ? product.fields.image : ''],
-      file: [null],
+      file: [null, product ? [] : [Validators.required]],
+      // file: [null],
       available: [product ? product.fields.available : true]
     });
   }
@@ -238,6 +239,9 @@ export class ManageProductComponent implements OnInit {
   clearPreview() {
     this.previewUrl = null;
     this.registerForm.get('image')?.reset();
+    this.selectedFile = null;
+    this.registerForm.get('file')?.reset();
+    this.registerForm.get('file')?.setValidators([Validators.required]);
   }
 
   private markFormGroupTouched(formGroup: FormGroup) {
