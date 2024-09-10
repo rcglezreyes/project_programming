@@ -18,6 +18,9 @@
 - [Estructura del Proyecto](#estructura-del-proyecto)
 - [Tecnologías usadas](#tecnologías-usadas)
 - [Descripción del Proyecto](#descripción-del-proyecto)
+- [Seguridad](#seguridad)
+- [Chatbot](#chatbot)
+- [Despliegue en AWS](#despliegue-en-aws)
 
 ## Instalación
 
@@ -175,4 +178,67 @@ Aquí se observa la vista del carrito del customer, aqui en la primera columna p
 
 ![Módulo de Orders](ecommerce_frontend/media/images/pag_orders.png)
 Aquí se observan las órdenes del customer y el monto total gastado en los productos que ha comprado.
+
+## Seguridad
+
+![Módulo de Seguridad](ecommerce_frontend/media/images/pag_security1.png)
+Cuando se intenta acceder a una página a la cual no se tiene permiso o no existe, se muestra este error 404 con un link de redirección hacia el dashboard. Por ejemplo, si el usuario de role ```user``` intenta acceder al Manage Customers, se mostrará este error.
+
+![Módulo de Seguridad](ecommerce_frontend/media/images/pag_security2.png)
+Accesos para el rol de ```administrator```
+
+![Módulo de Seguridad](ecommerce_frontend/media/images/pag_security3.png)
+Accesos para el rol de ```user```
+
+## Chatbot
+
+![Módulo de Chatbot](ecommerce_frontend/media/images/pag_chatbot1.png)
+Se creó un chatbot usando la API de OpenAI con su modelo ```gpt-4o-mini```. Dicho componente es la parte inferior derecha de la pantalla con un zIndex superior para que sea visible y accesible en todos los componentes de la aplicación
+
+![Módulo de Chatbot](ecommerce_frontend/media/images/pag_chatbot2.png)
+Se creó una función que devuelve en dependencia del mensaje escrito por el usuario la información de los productos relacionados con el mismo, su precio y stock. Dicha función también detecta el idioma
+
+![Módulo de Chatbot](ecommerce_frontend/media/images/pag_chatbot3.png)
+Ejemplo de un mensaje en inglés.
+
+## Despliegue en AWS
+
+![Módulo de Despliegue](ecommerce_frontend/media/images/pag_domain.png)
+Se creó un dominio en AWS para el despliegue de nuestra aplicación con una zona host llamada ```ecommerce.reyes-fullstack-dev.com```.
+
+![Módulo de Despliegue](ecommerce_frontend/media/images/pag_load_balancers.png)
+Se crearon dos ```load balancers``` para el despliegue de nuestros servicios, frontend y backend.
+
+![Módulo de Despliegue](ecommerce_frontend/media/images/pag_target_groups.png)
+Se crearon dos ```target groups``` para el despliegue de nuestros servicios, frontend y backend. Uno escuchará por el puerto 4200 y el otro por el 8000.
+
+![Módulo de Despliegue](ecommerce_frontend/media/images/pag_ecr.png)
+Se crearon dos ```ECR (Elastic Container Registry)``` para guardar las imagenes de los repos, backend y frontend.
+
+![Módulo de Despliegue](ecommerce_frontend/media/images/pag_cluster.png)
+Se creó un cluster en ```ECS (Elastic Container Service)``` para nuestros dos servicios.
+
+![Módulo de Despliegue](ecommerce_frontend/media/images/pag_services.png)
+Se crearon dos servicios para las dos ```task definitions``` de nuestra aplicación.
+
+![Módulo de Despliegue](ecommerce_frontend/media/images/pag_tasks.png)
+Se crearon dos ```task definitions``` con listeners HTTP por el puerto 80, ancladas a las imágenes respectivas de cada ECR y con cada uno de sus respectivos ```load balancers```.
+
+![Módulo de Despliegue](ecommerce_frontend/media/images/pag_db1.png)
+![Módulo de Despliegue](ecommerce_frontend/media/images/pag_db2.png)
+Se creó una BD en Postgres en su versión 16, usando el servicio de AWS ```RDS```.
+
+![Módulo de Despliegue](ecommerce_frontend/media/images/pag_inicio_aws.png)
+![Módulo de Despliegue](ecommerce_frontend/media/images/pag_inicio2_aws.png)
+![Módulo de Despliegue](ecommerce_frontend/media/images/pag_inicio3_aws.png)
+Se observa nuestra aplicación corriendo en AWS.
+
+
+
+
+
+
+
+
+
 

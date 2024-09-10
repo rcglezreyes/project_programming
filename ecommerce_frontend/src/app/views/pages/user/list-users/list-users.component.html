@@ -4,7 +4,7 @@
       <c-card-header class="d-flex justify-content-between align-items-center"
         style="padding-top: 0; padding-bottom: 0">
         <strong>Users List</strong>
-        <div style="min-width: 40%; margin-left: 10px; margin-top: 15px">
+        <div style="min-width: 80%; margin-left: 10px; margin-top: 15px">
           <form [formGroup]="searchForm">
             <c-input-group class="mb-3">
               <span cInputGroupText>
@@ -16,12 +16,12 @@
             </c-input-group>
           </form>
         </div>
-        <div class="ms-auto">
+        <!-- <div class="ms-auto">
           <button [active]="'active'" [color]="'dark'" [size]="'sm'" (click)="navigateToManageUser()" cButton>
             <svg cIcon class="me-2" name="cil-user" size="sm"></svg>
             New User
           </button>
-        </div>
+        </div> -->
       </c-card-header>
       <c-card-body>
         <table cTable class="sticky-header">

@@ -1,0 +1,38 @@
+FROM python:3.12
+
+# Establece el entorno para que los logs se impriman sin buffer
+ENV PYTHONUNBUFFERED 1
+ENV PYTHONPATH=/app
+
+# Establece el directorio de trabajo
+WORKDIR /app
+
+# Copia el archivo de requerimientos y actualiza pip
+COPY requirements.txt /app/
+RUN pip install --upgrade pip && pip install gunicorn && pip install -r requirements.txt
+
+# Instala las herramientas necesarias y elimina archivos temporales para reducir el tamaño de la imagen
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash \
+    wget \
+    gnupg2 \
+    lsb-release \
+    && rm -rf /var/lib/apt/lists/*
+
+# Agrega el repositorio de PostgreSQL y limpia el caché
+RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update && apt-get install -y \
+    postgresql-client-16 \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copia el contenido del proyecto
+COPY . /app/
+
+# Expone el puerto 8000 para la aplicación Django
+EXPOSE 8000
+
+# Ejecuta el script de inicialización y luego arranca Gunicorn y cron
+# CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && python init_scripts.py && gunicorn --bind 0.0.0.0:8000 _ecommerce_backend.wsgi:application"]
+CMD ["bash", "-c", "python manage.py makemigrations && python manage.py migrate && python init_scripts.py && gunicorn --bind 0.0.0.0:8000 _ecommerce_backend.wsgi:application"]

@@ -5,14 +5,46 @@
         <strong>{{ title }}</strong>
       </c-card-header>
       <c-card-body>
-        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" cForm class="row g-3 needs-validation">
+        <form [formGroup]="userForm" (ngSubmit)="onSubmit()" cForm class="row g-3 needs-validation">
+          <c-col md="6">
+            <label cLabel for="username">Username</label>
+            <c-input-group class="mb-3">
+              <input formControlName="username" autoComplete="username" cFormControl
+                [ngClass]="{'is-invalid': userForm.get('username')?.invalid && userForm.get('username')?.touched}" />
+            </c-input-group>
+            <div *ngIf="userForm.get('username')?.invalid && userForm.get('username')?.touched"
+              class="c-form-feedback">
+              <div *ngIf="userForm.get('username')?.errors?.['required']">Username is required</div>
+              <div *ngIf="userForm.get('username')?.errors?.['existingUsername']">
+                Username already exists in Users
+              </div>
+            </div>
+          </c-col>
+          <c-col md="6">
+            <label cLabel for="email">Email</label>
+            <c-input-group class="mb-3">
+              <input formControlName="email" autoComplete="email" cFormControl
+                [ngClass]="{'is-invalid': userForm.get('email')?.invalid && userForm.get('email')?.touched}" />
+            </c-input-group>
+            <div *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched"
+              class="c-form-feedback">
+              <div *ngIf="userForm.get('email')?.errors?.['required']">Email is required</div>
+              <div *ngIf="userForm.get('email')?.errors?.['email']">Invalid email format</div>
+              <div *ngIf="userForm.get('email')?.errors?.['existingEmailInUsers']">
+                Email already exists in Users
+              </div>
+              <div *ngIf="userForm.get('email')?.errors?.['existingEmailInCustomers']">
+                Email already exists in Customers
+              </div>
+            </div>
+          </c-col>
           <c-col md="6">
             <label cLabel for="first_name">First Name</label>
             <c-input-group class="mb-3">
               <input formControlName="first_name" autoComplete="given-name" cFormControl
-                [ngClass]="{'is-invalid': registerForm.get('first_name')?.invalid && registerForm.get('first_name')?.touched}" />
+                [ngClass]="{'is-invalid': userForm.get('first_name')?.invalid && userForm.get('first_name')?.touched}" />
             </c-input-group>
-            <div *ngIf="registerForm.get('first_name')?.invalid && registerForm.get('first_name')?.touched"
+            <div *ngIf="userForm.get('first_name')?.invalid && userForm.get('first_name')?.touched"
               class="c-form-feedback">
               First Name is required
             </div>
@@ -21,99 +53,73 @@
             <label cLabel for="last_name">Last name</label>
             <c-input-group class="mb-3">
               <input formControlName="last_name" autoComplete="family-name" cFormControl
-                [ngClass]="{'is-invalid': registerForm.get('last_name')?.invalid && registerForm.get('last_name')?.touched}" />
+                [ngClass]="{'is-invalid': userForm.get('last_name')?.invalid && userForm.get('last_name')?.touched}" />
             </c-input-group>
-            <div *ngIf="registerForm.get('last_name')?.invalid && registerForm.get('last_name')?.touched"
+            <div *ngIf="userForm.get('last_name')?.invalid && userForm.get('last_name')?.touched"
               class="c-form-feedback">
               Last Name is required
             </div>
           </c-col>
-          <c-col md="6">
-            <label cLabel for="email">Email</label>
-            <c-input-group class="mb-3">
-              <input formControlName="email" autoComplete="email" cFormControl
-                [ngClass]="{'is-invalid': registerForm.get('email')?.invalid && registerForm.get('email')?.touched}" />
-            </c-input-group>
-            <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
-              class="c-form-feedback">
-              <div *ngIf="registerForm.get('email')?.errors?.['required']">Email is required</div>
-              <div *ngIf="registerForm.get('email')?.errors?.['email']">Invalid email format</div>
-              <div *ngIf="registerForm.get('email')?.errors?.['existingEmailInUsers']">
-                Email already exists in Users
-              </div>
-              <div *ngIf="registerForm.get('email')?.errors?.['existingEmailInCustomers']">
-                Email already exists in Customers
-              </div>
-            </div>
-          </c-col>
-          <c-col md="6">
-            <label cLabel for="phone">Phone</label>
-            <c-input-group class="mb-3">
-              <input formControlName="phone" autoComplete="tel" cFormControl
-                [ngClass]="{'is-invalid': registerForm.get('phone')?.invalid && registerForm.get('phone')?.touched}" />
-            </c-input-group>
-            <div *ngIf="registerForm.get('phone')?.invalid && registerForm.get('phone')?.touched"
-              class="c-form-feedback">
-              Phone is required
-            </div>
-          </c-col>
+
           <c-col md="12">
-            <label cLabel for="address">Address</label>
-            <c-input-group class="mb-3">
-              <input formControlName="address" autoComplete="address-line1" cFormControl
-                [ngClass]="{'is-invalid': registerForm.get('address')?.invalid && registerForm.get('address')?.touched}" />
-            </c-input-group>
-            <div *ngIf="registerForm.get('address')?.invalid && registerForm.get('address')?.touched"
-              class="c-form-feedback">
-              Address is required
-            </div>
+            <c-col md="12" style="padding-left: 0px; padding-top: 10px">
+              <label cLabel for="is_staff"></label>
+              <c-form-check>
+                <input cFormCheckInput formControlName="is_staff" id="is_staff" type="checkbox" />
+                <label cFormCheckLabel for="is_staff">Is Admin?</label>
+              </c-form-check>
+            </c-col>
           </c-col>
-          <c-col md="4">
-            <label cLabel for="city">City</label>
-            <c-input-group class="mb-3">
-              <input formControlName="city" autoComplete="address-level2" cFormControl
-                [ngClass]="{'is-invalid': registerForm.get('city')?.invalid && registerForm.get('city')?.touched}" />
-            </c-input-group>
-            <div *ngIf="registerForm.get('city')?.invalid && registerForm.get('city')?.touched" class="c-form-feedback">
-              City is required
-            </div>
+
+          <c-col md="12">
+            <c-col md="12" style="padding-left: 0px; padding-top: 10px">
+              <label cLabel for="check_change_password"></label>
+              <c-form-check>
+                <input cFormCheckInput formControlName="check_change_password" id="check_change_password"
+                  type="checkbox" (change)="setChangePassword($event)" />
+                <label cFormCheckLabel for="check_change_password">Set Password?</label>
+              </c-form-check>
+            </c-col>
           </c-col>
-          <c-col md="4">
-            <label cLabel for="postal_code">Zip code</label>
+
+          <c-col md="6">
+            <label cLabel for="new_password">Password</label>
             <c-input-group class="mb-3">
-              <input formControlName="postal_code" autoComplete="postal-code" cFormControl type="text"
-                [ngClass]="{'is-invalid': registerForm.get('postal_code')?.invalid && registerForm.get('postal_code')?.touched}" />
+              <input formControlName="new_password" autoComplete="new_password" cFormControl type="password"
+                [ngClass]="{'is-invalid': userForm.get('new_password')?.invalid && userForm.get('new_password')?.touched}" />
             </c-input-group>
-            <div *ngIf="registerForm.get('postal_code')?.invalid && registerForm.get('postal_code')?.touched"
+            <div *ngIf="userForm.get('new_password')?.invalid && userForm.get('new_password')?.touched"
               class="c-form-feedback">
-              <div *ngIf="registerForm.get('postal_code')?.errors?.['required']">Zip Code is required</div>
-              <div *ngIf="registerForm.get('postal_code')?.errors?.['pattern']">Zip Code must be a positive integer
+              <div *ngIf="userForm.get('new_password')?.errors?.['required']">
+                New Password is required
+              </div>
+              <div *ngIf="userForm.get('new_password')?.errors?.['minlength']">
+                New Password must be at least 6 characters long
               </div>
             </div>
           </c-col>
-          <c-col md="4">
-            <label cLabel for="country">Country</label>
+          <c-col md="6">
+            <label cLabel for="confirm_password">Confirm Password</label>
             <c-input-group class="mb-3">
-              <ng-select formControlName="country" [items]="listCountries" bindLabel="fields.name" bindValue="pk"
-                placeholder="Select country"
-                style="border-radius: 0.25rem; width:100%; padding: 0.375rem 0.75rem; border: 1px solid #ddd"
-                [ngClass]="{'is-invalid': registerForm.get('country')?.invalid && registerForm.get('country')?.touched}">
-                <ng-template ng-option-tmp let-country="item">
-                  <img [src]="country.fields.flag" width="20" height="15" style="margin-right: 8px;">
-                  {{ country.fields.name }}
-                </ng-template>
-              </ng-select>
+              <input formControlName="confirm_password" autoComplete="confirm_password" cFormControl type="password"
+                [ngClass]="{'is-invalid': userForm.get('confirm_password')?.invalid && userForm.get('confirm_password')?.touched}" />
             </c-input-group>
-            <div *ngIf="registerForm.get('country')?.invalid && registerForm.get('country')?.touched"
+            <div *ngIf="userForm.get('confirm_password')?.invalid && userForm.get('confirm_password')?.touched"
               class="c-form-feedback">
-              Country is required
+              <div *ngIf="userForm.get('confirm_password')?.errors?.['required']">
+                Confirm New Password is required
+              </div>
+              <div *ngIf="userForm.get('confirm_password')?.errors?.['mismatch']">
+                Passwords do not match
+              </div>
             </div>
           </c-col>
+
           <c-col xs="12">
             <button cButton class="me-1" color="dark" type="submit">
               {{ buttonText }}
             </button>
-            <button (click)="navigateToCustomers()" cButton color="secondary" type="reset">
+            <button (click)="navigateToUsers()" cButton color="secondary" type="reset">
               Cancel
             </button>
           </c-col>

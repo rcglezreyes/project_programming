@@ -77,7 +77,7 @@ def manage_customer(request):
                 user.last_name = data['last_name']
                 user.save()
                 if user.is_staff:
-                    return JsonResponse({'data': model_to_dict(user)}, status=400)
+                    return JsonResponse({'data': model_to_dict(user)}, status=200)
         except Exception as e:
             logger.error(traceback.format_exc())
             return JsonResponse({'error': 'Invalid data for user', 'details': str(e)}, status=400)

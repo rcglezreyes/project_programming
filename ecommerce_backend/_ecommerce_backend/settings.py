@@ -35,8 +35,12 @@ env = environ.Env(
 environ.Env.read_env()
 
 ALLOWED_HOSTS = [
-    'localhost', '127.0.0.1', 'host.docker.internal', 'database.system.com'
+    'localhost', '127.0.0.1', 'host.docker.internal', 'ecommerce.reyes-fullstack-dev.com'
 ]
+
+# ALLOWED_HOSTS = [
+#     'ecommerce-frontend-109039904.us-east-1.elb.amazonaws.com'
+# ]
 
 
 ENVIRONMENT = env('ENVIRONMENT')
@@ -60,11 +64,15 @@ SESSION_COOKIE_SECURE = False  # False para desarrollo, True para producción
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
-    "https://database.system.com",
+    "https://ecommerce.reyes-fullstack-dev.com",
     "http://127.0.0.1:4200",
     "http://localhost:4200",
     "https://127.0.0.1",
 ]
+
+# CORS_ALLOWED_ORIGINS = [
+#     "http://ecommerce-frontend-109039904.us-east-1.elb.amazonaws.com",
+# ]
 
 CORS_ALLOW_METHODS = [
     'GET',
@@ -211,8 +219,6 @@ STATIC_URL = 'static/'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-print(MEDIA_ROOT)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

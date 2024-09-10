@@ -129,7 +129,7 @@ export class ProfileComponent implements OnInit {
         console.error('Request failed:', error);
       },
       complete: () => {
-        
+
       }
     });
   }
@@ -163,9 +163,20 @@ export class ProfileComponent implements OnInit {
             icon: 'success',
             confirmButtonText: 'OK',
             willClose: () => {
-              if (this.check_change) {
-                localStorage.setItem('passwordChange', 'true');
-                this.authService.logout();
+              const usernameLogged = localStorage.getItem('username');
+              if (this.check_change || usernameLogged !== this.profileForm.get('username')?.value) {
+                Swal.fire({
+                  title: 'Success!',
+                  text: `You have to login again!`,
+                  icon: 'success',
+                  confirmButtonText: 'OK',
+                  willClose: () => {
+                    if (this.check_change) {
+                      localStorage.setItem('passwordChange', 'true');
+                    }
+                    this.authService.logout();
+                  }
+                });
               }
               this.router.navigate(['/dashboard']);
             }
@@ -200,29 +211,29 @@ export class ProfileComponent implements OnInit {
         ]
       ],
       phone: [
-        customer ? customer.phone : '', 
+        customer ? customer.phone : '',
         this.isAdmin ? [] : [Validators.required]
       ],
       address: [
-        customer ? customer.address : '', 
+        customer ? customer.address : '',
         this.isAdmin ? [] : [Validators.required]
       ],
       city: [
-        customer ? customer.city : '', 
+        customer ? customer.city : '',
         this.isAdmin ? [] : [Validators.required]
       ],
       postal_code: [
-        customer ? customer.postal_code : '',          
+        customer ? customer.postal_code : '',
         this.isAdmin ? [] : [Validators.required, Validators.pattern(/^[0-9]+$/)]
       ],
       country: [
-        customer ? customer.country : '', 
+        customer ? customer.country : '',
         this.isAdmin ? [] : [Validators.required]
       ],
       username: [
-        customer ? customer.username : '', 
+        customer ? customer.username : '',
         [
-          Validators.required, 
+          Validators.required,
           Validators.minLength(6),
         ],
         [

@@ -41,6 +41,7 @@ import { Subscription } from 'rxjs';
 import { ToastersComponent } from '../toasters/toasters.component';
 
 import { WidgetsBrandComponent } from '../widgets/widgets-brand/widgets-brand.component';
+import { ChatbotComponent } from '../store/chatbot/chatbot.component';
 import { WidgetsDropdownComponent } from '../widgets/widgets-dropdown/widgets-dropdown.component';
 import { DashboardChartsData, IChartProps } from './dashboard-charts-data';
 import { CartService } from 'src/app/services/cart.service';
@@ -86,6 +87,7 @@ interface IUser {
     TableDirective,
     AvatarComponent,
     ToastersComponent,
+    ChatbotComponent
   ],
 })
 export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {

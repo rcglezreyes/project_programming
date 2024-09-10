@@ -143,6 +143,8 @@ def manage_order(request):
             })
             new_quantity = product.stock - item.get('quantity', 1) 
             product.stock = new_quantity if new_quantity >= 0 else 0
+            if product.stock == 0:
+                product.available = False
             product.save()
         config_info = {
             'email': data.get('email', ''),

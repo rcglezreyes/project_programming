@@ -198,3 +198,6 @@ def send_orders_confirmation_email(config_info, list_orders_items_query):
     email_message.send()
     
 
+#############################################
+# 4. Data Charts Views
+#############################################

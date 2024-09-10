@@ -16,6 +16,7 @@ import {
 } from '@coreui/angular';
 
 import { DefaultFooterComponent, DefaultHeaderComponent } from './';
+import { ChatbotComponent } from '../../views/store/chatbot/chatbot.component';
 import { navItems } from './_nav';
 
 function isOverflown(element: HTMLElement) {
@@ -45,7 +46,8 @@ function isOverflown(element: HTMLElement) {
     ShadowOnScrollDirective,
     ContainerComponent,
     RouterOutlet,
-    DefaultFooterComponent
+    DefaultFooterComponent,
+    ChatbotComponent
   ]
 })
 export class DefaultLayoutComponent {

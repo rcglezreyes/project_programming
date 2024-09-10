@@ -1,0 +1,29 @@
+<div class="chatbot-container">
+    <div class="chatbot-icon" (click)="toggleChat()" 
+    matTooltip="I am your ECommerce Assistant. Click to chat with me!" 
+    matTooltipPosition="above">
+        <img src="assets/chat-icon.png" alt="Chatbot" class="chat-icon" style="border-radius: 20px;">
+    </div>
+
+    <div class="chat-window" *ngIf="chatOpen">
+        <div class="chat-header">
+            <h5>ECommerce Assistant</h5>
+            <button (click)="toggleChat()" class="close-chat">X</button>
+        </div>
+        <div class="chat-body">
+            <div *ngFor="let message of messages">
+                <!-- <p [ngClass]="message.from === 'user' ? 'user-msg' : 'assistant-msg'">
+                    {{ message.text }}
+                </p> -->
+                <div [ngClass]="message.from === 'user' ? 'user-alert' : 'assistant-alert'">
+                    {{ message.text }}
+                    <div class="message-time">{{ message.timestamp | date: 'short' }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="chat-footer">
+            <input type="text" [(ngModel)]="messageUser" (keyup.enter)="sendMessage()" placeholder="Type a message...">
+            <button (click)="sendMessage()">Send</button>
+        </div>
+    </div>
+</div>

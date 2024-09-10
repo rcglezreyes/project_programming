@@ -131,11 +131,11 @@ export class ListUsersComponent implements OnInit {
   }
 
   navigateToManageUser() {
-    this.router.navigate(['/user/manage_user']);
+    this.router.navigate(['/pages/user/manage_user']);
   }
 
   navigateToEditUser(user: IUserFull) {
-    this.router.navigate(['/user/manage_user'], { state: { user: user } });
+    this.router.navigate(['/pages/user/manage_user'], { state: { user: user } });
   }
 
   onDelete(pk: number): void {

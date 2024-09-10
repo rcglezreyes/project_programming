@@ -36,8 +36,8 @@ def list_users(request):
 def manage_user(request):
     valid_token = validateJWTTokenRequest(request)
     if valid_token:
-        data = json.load(request.body)
-        if 'email' in data and 'username' in data and 'password' in data:
+        data = json.loads(request.body)
+        if 'email' in data and 'username' in data:
             email = data.get('email')
             username = data.get('username')
             first_name = data.get('first_name', '')

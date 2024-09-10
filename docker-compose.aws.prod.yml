@@ -1,0 +1,32 @@
+services:
+  aws_ecommerce_backend_app:
+    platform: linux/amd64
+    build:
+      context: ./ecommerce_backend
+      dockerfile: Dockerfile.aws.prod
+    container_name: aws_ecommerce_backend_app
+    volumes:
+      - ./ecommerce_backend:/app
+      - ./ecommerce_backend/nginx/gunicorn.conf.py:/etc/nginx/gunicorn.conf.py
+      - ./ecommerce_backend/media:/app/media
+    ports:
+      - "8000:8000"
+    networks:
+      - programming_the_internet_module
+
+  aws_ecommerce_frontend_app:
+    platform: linux/amd64
+    build:
+      context: ./ecommerce_frontend
+      dockerfile: Dockerfile.aws.prod
+    container_name: aws_ecommerce_frontend_app
+    volumes:
+      - ./ecommerce_frontend/build:/app/build 
+    ports:
+      - "4200:4200"
+    networks:
+      - programming_the_internet_module
+
+networks:
+  programming_the_internet_module:
+    driver: bridge

@@ -28,5 +28,12 @@ export const routes: Routes = [
     data: {
       title: 'Users List'
     }
+  },
+  {
+    path: 'user/manage_user',
+    loadComponent: () => import('./user/manage-user/manage-user.component').then(m => m.ManageUserComponent),
+    data: {
+      title: 'Manage User'
+    }
   }
 ];

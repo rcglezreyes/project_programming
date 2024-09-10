@@ -34,16 +34,15 @@ import { CommonModule } from '@angular/common';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { lastValueFrom } from 'rxjs';
 import Swal from 'sweetalert2';
-import { RegisterService } from 'src/app/services/register.service';
-import { CustomerService } from 'src/app/services/customer.service';
-import { ICountry } from 'src/app/interfaces/icountry.interface';
-import { ICustomer } from 'src/app/interfaces/icustomer.interface';
-import { IApiResponse } from 'src/app/interfaces/iapiResponse.interface';
+import { RegisterService } from '../../../../services/register.service';
+import { UserService } from '../../../../services/user.service';
+import { IUser, IUserFull } from '../../../../interfaces/iuser.interface';
+import { IApiResponse } from '../../../../interfaces/iapiResponse.interface';
 
 @Component({
   selector: 'app-validation',
-  templateUrl: './manage-customer.component.html',
-  styleUrls: ['./manage-customer.component.scss'],
+  templateUrl: './manage-user.component.html',
+  styleUrls: ['./manage-user.component.scss'],
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
@@ -76,33 +75,32 @@ import { IApiResponse } from 'src/app/interfaces/iapiResponse.interface';
     RegisterService,
   ]
 })
-export class ManageCustomerComponent implements OnInit {
+export class ManageUserComponent implements OnInit {
 
   customStylesValidated = false;
   browserDefaultsValidated = false;
   tooltipValidated = false;
+  
+  @Input() iUser!: IUser;
+  @Input() iUserFull!: IUserFull;
 
-  @Input() iCountry!: ICountry;
-  @Input() iCustomer!: ICustomer;
-
-  registerForm: FormGroup;
+  userForm: FormGroup;
   hasErrors = false;
-
-  listCountries: ICountry[] = [];
+  check_change = false;
 
   isEditMode = false;
   title = '';
   buttonText = '';
 
-  customer: ICustomer = {} as ICustomer;
+  user: IUserFull = {} as IUserFull;
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private registerService: RegisterService,
-    private customerService: CustomerService
+    private userService: UserService
   ) {
-    this.registerForm = this.fb.group({});
+    this.userForm = this.fb.group({});
   }
 
   ngOnInit(): void {
@@ -111,32 +109,35 @@ export class ManageCustomerComponent implements OnInit {
       this.router.navigate(['/404']);
     }
     else {
-      this.customer = history.state.customer;
-      this.isEditMode = this.customer ? true : false;
-      this.title = this.isEditMode ? 'Edit Customer' : 'Add Customer';
+      this.user = history.state.user;
+      this.isEditMode = this.user ? true : false;
+      this.title = this.isEditMode ? 'Edit User' : 'Add User';
       this.buttonText = this.isEditMode ? 'Update' : 'Save';
-      this.loadListCountries();
-      this.initializeForm(this.customer);
+      this.initializeForm(this.user);
     }
   }
 
   onSubmit() {
-    this.markFormGroupTouched(this.registerForm);
+    this.markFormGroupTouched(this.userForm);
     const text = this.isEditMode ? 'updated' : 'saved';
-    if (this.registerForm.valid) {
-      const payload = this.isEditMode ?
-                      { ...this.registerForm.value, id: this.customer.pk } :
-                      this.registerForm.value;
-      this.registerService.manageCustomer(payload, false, false).subscribe({
+    if (this.userForm.valid) {
+      let payload = this.userForm.value;
+      if (!this.check_change) {
+        delete payload.password;
+        delete payload.new_password;
+        delete payload.confirm_password;
+      }
+      console.log('Payload:', payload);
+      this.userService.manageUser(payload).subscribe({
         next: (response: IApiResponse<any[]>) => {
           console.log('Response:', response);
           Swal.fire({
             title: 'Success!',
-            text: `Customer has been ${text} successfully!`,
+            text: `User has been ${text} successfully!`,
             icon: 'success',
             confirmButtonText: 'OK',
             willClose: () => {
-              this.router.navigate(['/store/customers']);
+              this.router.navigate(['/pages/user/users']);
             }
           });
         },
@@ -149,52 +150,64 @@ export class ManageCustomerComponent implements OnInit {
       });
     } else {
       this.hasErrors = true;
-      console.log('Form is invalid:', this.registerForm.errors);
+      console.log('Form is invalid:', this.userForm.errors);
     }
   }
 
-  initializeForm(customer: ICustomer): void {
-    this.registerForm = this.fb.group({
-      first_name: [customer ? customer.fields.first_name : '', Validators.required],
-      last_name: [customer ? customer.fields.last_name : '', Validators.required],
+  initializeForm(user: IUserFull): void {
+    this.userForm = this.fb.group({
+      username: [
+        user ? user.fields.username : '',
+        [
+          Validators.required
+        ],
+        [
+          this.validateExistingUsername.bind(this)
+        ]
+      ],
+      first_name: [user ? user.fields.first_name : '', Validators.required],
+      last_name: [user ? user.fields.last_name : '', Validators.required],
       email: [
-        customer ? customer.fields.email : '',
+        user ? user.fields.email : '',
         [
           Validators.required,
           Validators.email
         ],
         [
-          this.validateExistingEmailInUsers.bind(this),
-          this.validateExistingEmailInCustomers.bind(this)
+          this.validateExistingEmailInCustomers.bind(this),
+          this.validateExistingEmailInUsers.bind(this)
         ]
       ],
-      phone: [customer ? customer.fields.phone : '', Validators.required],
-      address: [customer ? customer.fields.address : '', Validators.required],
-      city: [customer ? customer.fields.city : '', Validators.required],
-      postal_code: [
-        customer ? customer.fields.postal_code : '',
-        [Validators.required, Validators.pattern(/^[0-9]+$/)]
-      ],
-      country: [customer ? customer.fields.country : null, Validators.required]
+      is_staff: [user ? user.fields.is_staff : false],
+      check_change_password: [false],
+      new_password: [''],
+      confirm_password: ['']
     });
+    this.userForm.get('new_password')?.disable();
+    this.userForm.get('confirm_password')?.disable();
   }
 
-  loadListCountries(): void {
-    this.registerService.getListCountries().subscribe({
-      next: (countries) => {
-        this.listCountries = JSON.parse(countries.data);
-      },
-      error: (error) => {
-        console.error('Request failed:', error);
-      },
-      complete: () => {
-        console.log('Request completed.');
-      }
-    });
+  setChangePassword(event: any): void {
+    this.check_change = (event.target as HTMLInputElement).checked;
+    if (this.check_change) {
+      this.userForm.get('new_password')?.enable();
+      this.userForm.get('confirm_password')?.enable();
+      this.userForm.get('new_password')?.setValidators([Validators.required, Validators.minLength(6)]);
+      this.userForm.get('confirm_password')?.setValidators([Validators.required, this.passwordMatchValidator.bind(this)]);
+    } else {
+      this.userForm.get('new_password')?.clearValidators();
+      this.userForm.get('confirm_password')?.clearValidators();
+      this.userForm.get('new_password')?.setValue('');
+      this.userForm.get('confirm_password')?.setValue('');
+      this.userForm.get('new_password')?.disable();
+      this.userForm.get('confirm_password')?.disable();
+    }
+    this.userForm.get('new_password')?.updateValueAndValidity();
+    this.userForm.get('confirm_password')?.updateValueAndValidity();
   }
 
-  navigateToCustomers() {
-    this.router.navigate(['/store/customers']);
+  navigateToUsers() {
+    this.router.navigate(['/pages/user/users']);
   }
 
   private markFormGroupTouched(formGroup: FormGroup) {
@@ -208,20 +221,35 @@ export class ManageCustomerComponent implements OnInit {
   }
 
   private passwordMatchValidator(control: AbstractControl): { [key: string]: boolean } | null {
-    if (!this.registerForm) return null;
-    const password = this.registerForm.get('password')?.value;
+    if (!this.userForm) return null;
+    const password = this.userForm.get('new_password')?.value;
     const confirmPassword = control.value;
     return password !== confirmPassword ? { mismatch: true } : null;
   }
 
+  private async validateExistingEmailInCustomers(control: AbstractControl): Promise<{ [key: string]: boolean } | null> {
+    if (!this.userForm) return null;
+    const email = control.value;
+    if (!email) return null;
+    try {
+      const response = await lastValueFrom(this.registerService.checkExistingEmailInCustomers(email));
+      const data = JSON.parse(response.data);
+      const existingEmailInCustomers = this.isEditMode ? data.length > 0 && this.user.fields.email != data[0].fields.email : data.length > 0;
+      return existingEmailInCustomers ? { existingEmailInCustomers: true } : null;
+    } catch (error) {
+      console.error('Request failed:', error);
+      return null;
+    }
+  }
+
   private async validateExistingEmailInUsers(control: AbstractControl): Promise<{ [key: string]: boolean } | null> {
-    if (!this.registerForm) return null;
+    if (!this.userForm) return null;
     const email = control.value;
     if (!email) return null;
     try {
       const response = await lastValueFrom(this.registerService.checkExistingEmailInUsers(email));
       const data = JSON.parse(response.data);
-      const existingEmailInUsers = this.isEditMode ? data.length > 0 && this.customer.fields.email != data[0].fields.email : data.length > 0;
+      const existingEmailInUsers = this.isEditMode ? data.length > 0 && this.user.pk != data[0].pk : data.length > 0;
       return existingEmailInUsers ? { existingEmailInUsers: true } : null;
     } catch (error) {
       console.error('Request failed:', error);
@@ -229,15 +257,15 @@ export class ManageCustomerComponent implements OnInit {
     }
   }
 
-  private async validateExistingEmailInCustomers(control: AbstractControl): Promise<{ [key: string]: boolean } | null> {
-    if (!this.registerForm) return null;
-    const email = control.value;
-    if (!email) return null;
+  private async validateExistingUsername(control: AbstractControl): Promise<{ [key: string]: boolean } | null> {
+    if (!this.userForm) return null;
+    const username = control.value;
+    if (!username) return null;
     try {
-      const response = await lastValueFrom(this.registerService.checkExistingEmailInCustomers(email));
+      const response = await lastValueFrom(this.registerService.checkExistingUsername(username));
       const data = JSON.parse(response.data);
-      const existingEmailInCustomers = this.isEditMode ? data.length > 0 && this.customer.pk != data[0].pk : data.length > 0;
-      return existingEmailInCustomers ? { existingEmailInCustomers: true } : null;
+      const existingUsername = this.isEditMode ? data.length > 0 && this.user.fields.username != data[0].fields.username : data.length > 0;
+      return existingUsername ? { existingUsername: true } : null;
     } catch (error) {
       console.error('Request failed:', error);
       return null;

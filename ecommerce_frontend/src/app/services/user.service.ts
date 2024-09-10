@@ -31,14 +31,7 @@ export class UserService {
     return this.users$; 
   }
 
-  manageUser(payload: Object, isRegistration: boolean, isProfileEdit: boolean): Observable<any> {
-    if (isRegistration) {
-      payload = { ...payload, is_registration: true };
-      return this.webService.fetchWithoutToken('users/manage_user', 'POST', payload);
-    }
-    else if (isProfileEdit) {
-      payload = { ...payload, is_profile_edit: true };
-    }
+  manageUser(payload: Object): Observable<any> {
     return this.webService.fetchWithToken('users/manage_user', 'POST', payload);
   }
 

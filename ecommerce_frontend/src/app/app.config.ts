@@ -15,6 +15,7 @@ import { DropdownModule, SidebarModule } from '@coreui/angular';
 import { IconSetService } from '@coreui/icons-angular';
 import { AuthService } from './auth.service';
 import { routes } from './app.routes';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -37,7 +38,7 @@ export const appConfig: ApplicationConfig = {
     IconSetService,
     AuthService,
     provideAnimations(),
-    provideHttpClient()
+    provideHttpClient(), provideAnimationsAsync()
 
   ]
 };
